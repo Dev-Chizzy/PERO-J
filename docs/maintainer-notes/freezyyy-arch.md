@@ -6,3 +6,7 @@ Already implemented in `frontend/src/pages/Home.tsx`: the `<select>` is populate
 
 Already implemented in `frontend/src/pages/Home.tsx`: "Showing N of M events" is rendered above the table with " (filtered by function: X)" appended when `effectiveFn` is set, and hidden when `total === 0`. No code change needed.
 
+## #798 WalletPage Next button
+
+Already implemented in `frontend/src/pages/WalletPage.tsx`: Next uses `disabled={page * limit >= total}` exclusively, matching `Home.tsx`. No code change needed.
+
