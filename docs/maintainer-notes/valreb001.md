@@ -3,3 +3,7 @@
 ## #808 dump file size validation
 
 Already implemented in `scripts/backup.sh` (checks `stat -c%s` is greater than 512 after `pg_dump`, logs an error, removes the file and exits 1) and documented in `docs/backup.md` under "Minimum Dump Size". No code change needed; this issue can be closed.
+
+## #809 NETWORK_PASSPHRASE startup validation
+
+Already implemented: `validateNetwork(rpc)` in `indexer/src/validateNetwork.js` is called from `indexer/src/index.js` at startup, exits 1 on mismatch, is covered by `indexer/test/index.test.js` and described in `README.md`. No code change needed; this issue can be closed.
