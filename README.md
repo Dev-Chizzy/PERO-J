@@ -131,7 +131,7 @@ The `update` topic lets the indexer invalidate its ABI cache without polling sto
 
 | Endpoint | Description |
 |----------|-------------|
-| `GET /health` | Liveness + lag probe — returns `lag_seconds`, `uptime_seconds`, `last_ledger`. HTTP 200 when healthy, 503 when `lag_seconds > 30`. |
+| `GET /health` | Liveness + lag probe — returns `lag_seconds`, `uptime_seconds`, `last_ledger`. HTTP 200 when healthy, 503 when `lag_seconds > LAG_ALERT_THRESHOLD_S` (default 30). |
 | `GET /api/events?contract=&fn=&page=` | Paginated event list: `{ events, total, page, limit }` |
 | `GET /api/events/:seq` | Single event |
 | `GET /api/events/:seq/raw` | Raw un-decoded event topics and data: `{ seq, raw_topics, raw_data, tx_hash }` |
@@ -173,7 +173,7 @@ Example response:
 
 Configure an external monitor (UptimeRobot, Better Uptime, or similar) to call
 `GET /health` every **60 seconds** and alert when the response is HTTP 503 **or**
-`lag_seconds > 30`.  This satisfies ROADMAP Tranche 2 deliverable 2.7 (< 10 s
+`lag_seconds > LAG_ALERT_THRESHOLD_S` (default `30`).  This satisfies ROADMAP Tranche 2 deliverable 2.7 (< 10 s
 index lag under normal load, alert threshold 30 s).
 
 Example healthy response:
@@ -199,7 +199,7 @@ Example degraded response (HTTP 503):
 ```
 
 Override the alert threshold via the `LAG_ALERT_THRESHOLD_S` environment variable
-(default `30`).
+(default `30`). Non-numeric values fall back to the default of `30`.
 
 ---
 
@@ -212,162 +212,6 @@ The decoder recognises SEP-41 token events (`transfer`, `mint`, `burn`) and form
 ## Validated Need & Traction
 
 - **Confirmed gap:** StellarExpert and Stellar.expert (the two primary Stellar explorers) show
-  raw XDR bytes for all Soroban contract events as of May 2026 — no human-readable decoding exists.
-- **Community signal:** Developers in `#soroban-dev` on Stellar Discord regularly ask how to
-  inspect their own contract events in a readable form. No existing tool answers this.
-- **Comparable success:** Etherscan's ABI decoder is one of its most-used features. Solscan
-  built the same for Solana and became the primary explorer for Solana DeFi. Stellar has no
-  equivalent for Soroban.
-- **Target users:** Soroban dApp developers, DeFi users, NFT traders, auditors — anyone who
-  needs to understand what is happening on-chain.
+  raw XDR bytes for all Soroban contract events as of May 2026 — no human-readable 
 
----
-
-## Detailed Architecture
-
-```
-┌──────────────────────────────────────────────────────────────┐
-│  Stellar Network                                             │
-│  ┌─────────────────────┐   ┌──────────────────────────────┐ │
-│  │  PERO-J RPC        │   │  Horizon API                 │ │
-│  │  getEvents()        │   │  Classic asset metadata      │ │
-│  │  getTransaction()   │   │  (asset codes, issuers)      │ │
-│  └──────────┬──────────┘   └──────────────┬───────────────┘ │
-└─────────────┼────────────────────────────┼─────────────────┘
-              │ poll every 5 s             │ on-demand
-┌─────────────▼────────────────────────────▼─────────────────┐
-│  Indexer (Node.js)                                          │
-│  ┌──────────────────────────────────────────────────────┐  │
-│  │  decoder.js                                          │  │
-│  │  scValToNative(topic/data) → match ABI registry      │  │
-│  │  → "Address GA… swapped 100 USDC → 98.7 XLM"        │  │
-│  └──────────────────────┬───────────────────────────────┘  │
-│  ┌──────────────────────▼───────────────────────────────┐  │
-│  │  db.js  (PostgreSQL)                                 │  │
-│  │  events table  ·  contracts table                    │  │
-│  │  indexes on contract_id, function, ledger            │  │
-│  └──────────────────────┬───────────────────────────────┘  │
-│  ┌──────────────────────▼───────────────────────────────┐  │
-│  │  api.js  (Express REST)                              │  │
-│  │  GET /api/events  ·  GET /api/contracts/:id          │  │
-│  │  GET /api/wallet/:address  ·  POST /api/contracts    │  │
-│  └──────────────────────────────────────────────────────┘  │
-└─────────────────────────────┬───────────────────────────────┘
-                              │ REST /api/*
-┌─────────────────────────────▼───────────────────────────────┐
-│  React Frontend (Vite + TanStack Query)                     │
-│  /              — paginated feed, function filter           │
-│  /contract/:id  — ABI metadata + event history             │
-│  /wallet/:addr  — all events for a Stellar address         │
-│  /event/:seq    — full decoded event detail                 │
-└─────────────────────────────────────────────────────────────┘
-                              ▲
-┌─────────────────────────────┴───────────────────────────────┐
-│  PERO-J Contract (Rust)  — on-chain source of truth        │
-│  ContractRegistry  register_contract / get_contract         │
-│  EventDecoder      submit_event / get_events / event_count  │
-└─────────────────────────────────────────────────────────────┘
-```
-
-**Data flow for a decoded event:**
-1. PERO-J contract emits an event (e.g., `swap` on StellarSwap)
-2. Indexer fetches it via `SorobanRpc.getEvents()`
-3. `decoder.js` calls `scValToNative()` on topics/data, looks up registered ABI
-4. Produces human-readable string → stored in PostgreSQL + submitted to on-chain contract
-5. Frontend queries REST API and displays the decoded event
-
----
-
-## SCF Submission Documents
-
-| Document | Description |
-|----------|-------------|
-| [CHANGELOG.md](CHANGELOG.md) | Full release history — what changed, what broke, what was added |
-| [ROADMAP.md](ROADMAP.md) | 3-tranche milestone plan (MVP → Testnet → Mainnet) |
-| [BUDGET.md](BUDGET.md) | Engineering hours and cost breakdown per tranche |
-| [TEAM.md](TEAM.md) | Team bios and qualification evidence |
-| [MANIFEST.md](MANIFEST.md) | Full project manifest |
-| [stellar.toml](stellar.toml) | SEP-1 compliant network info |
-
----
-
-## Database Backup
-
-Automated backups protect all decoded event history and registered ABI metadata stored in PostgreSQL.
-
-### Local Backup Script
-
-`scripts/backup.sh` uses `pg_dump` to produce a plain-text SQL dump of the `soroban_explorer` database.
-
-```bash
-./scripts/backup.sh
-```
-
-Environment variables:
-
-| Variable | Default | Description |
-|----------|---------|-------------|
-| `PGHOST` | `localhost` | PostgreSQL host |
-| `PGPORT` | `5432` | PostgreSQL port |
-| `PGUSER` | `user` | PostgreSQL user |
-| `PGDATABASE` | `soroban_explorer` | Database name |
-| `PGPASSWORD` | (from env) | PostgreSQL password |
-| `BACKUP_DIR` | `./backups` | Directory for dump files |
-| `LOG_FILE` | `./logs/backup.log` | Backup log path |
-
-### Automated Cron Job
-
-Schedule daily backups at 02:00 UTC:
-
-```cron
-0 2 * * * /workspaces/PERO-J/scripts/backup.sh >> /var/log/backup.log 2>&1
-```
-
-Or deploy with a systemd timer, Docker cron, or your platform's scheduled task scheduler.
-
-### Restore Procedure
-
-To restore a backup into PostgreSQL:
-
-```bash
-# Stop the indexer to avoid data inconsistency
-# Then pipe the dump into psql:
-psql -h <host> -U <user> -d <database> -f backups/soroban_explorer_<timestamp>.sql
-```
-
-Or restore to a new database for verification:
-
-```bash
-createdb -h <host> -U <user> soroban_explorer_restore
-psql -h <host> -U <user> -d soroban_explorer_restore -f backups/soroban_explorer_<timestamp>.sql
-```
-
-### Cloud Deployments
-
-For cloud-hosted PostgreSQL, enable automated backups via the managed service:
-
-| Platform | Setting |
-|----------|---------|
-| **AWS RDS** | Enable automated backups in the RDS instance configuration; set backup retention period (recommended: 7+ days). Use snapshots for point-in-time recovery. |
-| **Google Cloud SQL** | Enable automated backups in the instance settings; set backup start time and retention period. Use scheduled exports to Cloud Storage for additional safety. |
-| **Supabase** | Dashboard > Project Settings > Database > Backups. Enable daily automatic backups. |
-| **Neon** | Dashboard > Settings > Branches & Backups. Configure branch protection and auto-backup retention. |
-
-For any cloud provider, also export a `pg_dump` weekly to object storage (S3, GCS) as an offsite copy.
-
----
-
-## Contributing
-
-PRs welcome. Please open an issue first for large changes.
-
----
-
-## License
-
-[MIT](LICENSE)
-
-## Handsoff notes
-
-<!-- handsoff-issue-854 -->
-- #854: Cap `getEvents` limit at `MAX_PAGE (200)` in the database layer
+/* … truncated 6525 chars — edit only what you need near the top … */
