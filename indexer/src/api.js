@@ -1,8 +1,10 @@
 import express from "express";
 import rateLimit from "express-rate-limit";
+import { StrKey } from "@stellar/stellar-sdk";
 import { db } from "./db.js";
 import { fetchTokenMetadata } from "./sep41Metadata.js";
 import { health } from "./index.js";
+import { eventEmitter } from "./events.js";
 
 const PORT = process.env.PORT || 3001;
 
@@ -10,18 +12,52 @@ const asyncHandler = (fn) => (req, res, next) => {
   Promise.resolve(fn(req, res, next)).catch(next);
 };
 
-export function startApi() {
-  const app = express();
-  app.use(express.json());
+/**
+ * Admin-key authentication middleware for privileged operations.
+ * Reads the expected key from the API_ADMIN_KEY environment variable
+ * and validates it against an Authorization: Bearer <key> header.
+ */
+const requireAdminKey = (req, res, next) => {
+  const authHeader = req.headers.authorization || "";
+  const match = authHeader.match(/^Bearer\s+(.+)$/i);
+  const token = match ? match[1] : null;
+  const expected = process.env.API_ADMIN_KEY;
+  if (!expected || !token || token !== expected) {
+    return res.status(401).json({ error: "Unauthorized" });
+  }
+  next();
+};
 
-  app.use(
-    rateLimit({
-      windowMs: 60_000,
-      max: 100,
-      standardHeaders: true,
-      legacyHeaders: false,
-    })
-  );
+/**
+ * Global Express error-handling middleware.
+ * Logs the full stack trace together with the request method and path
+ * so that unhandled errors are debuggable in production logs.
+ *
+ * @param {Error} err
+ * @param {import("express").Request} req
+ * @param {import("express").Response} res
+ * @param {import("express").NextFunction} _next
+ */
+export function errorHandler(err, req, res, _next) {
+  console.error("API Error:", { method: req.method, path: req.path, stack: err.stack });
+  if (res.headersSent) {
+    return;
+  }
+  res.status(500).json({ error: err.message || "Internal Server Error" });
+}
+
+export function isValidStellarAddress(value) {
+  if (typeof value !== "string") {
+    return false;
+  }
+  const trimmed = value.trim();
+  return StrKey.isValidEd25519PublicKey(trimmed) || StrKey.isValidContract(trimmed);
+}
+
+export function createApp() {
+  const app = express();
+  let distinctFunctionsCache = null;
+  app.use(express.json());
 
   // GET /health — liveness + readiness probe for container orchestrators and uptime monitors
   app.get(
@@ -42,7 +78,6 @@ export function startApi() {
         return res.status(503).json({
           status: "error",
           db: "disconnected",
-          latestLedger: health.lastLedger,
           uptime_seconds: uptimeSeconds,
           lag_seconds: lagSeconds,
           last_ledger: health.lastLedger,
@@ -58,7 +93,6 @@ export function startApi() {
       const body = {
         status,
         db: "connected",
-        latestLedger: health.lastLedger,
         uptime_seconds: uptimeSeconds,
         lag_seconds: lagSeconds,
         last_ledger: health.lastLedger,
@@ -77,7 +111,18 @@ export function startApi() {
       if (!dbConnected) {
         return res.status(503).json({ status: "error", db: "disconnected" });
       }
-      res.status(200).json({ status: "ok", db: "connected", latestLedger: health.lastLedger });
+      res.status(200).json({ status: "ok", db: "connected", last_ledger: health.lastLedger });
+    })
+  );
+
+  // Rate limiter applies to /api/* routes to protect endpoints against DoS while exempting /health and /ready probes
+  app.use(
+    "/api",
+    rateLimit({
+      windowMs: 60_000,
+      max: 100,
+      standardHeaders: true,
+      legacyHeaders: false,
     })
   );
 
@@ -85,7 +130,32 @@ export function startApi() {
   app.get(
     "/api/functions",
     asyncHandler(async (req, res) => {
+      const now = Date.now();
+      const cacheIsFresh =
+        distinctFunctionsCache !== null && distinctFunctionsCache.expiresAt > now;
+
+      if (cacheIsFresh) {
+        res.setHeader("Cache-Control", "public, max-age=60");
+        return res.json(distinctFunctionsCache.value);
+      }
+
       const result = await db.getDistinctFunctions();
+      distinctFunctionsCache = {
+        value: result,
+        expiresAt: now + 60_000,
+      };
+      res.setHeader("Cache-Control", "public, max-age=60");
+      return res.json(result);
+    })
+  );
+
+  // GET /api/leaderboard?limit=10 — top contracts by event volume
+  app.get(
+    "/api/leaderboard",
+    asyncHandler(async (req, res) => {
+      const limit = Math.min(Math.max(Number(req.query.limit) || 10, 1), 50);
+      const result = await db.getLeaderboard(limit);
+      res.setHeader("Cache-Control", "public, max-age=60");
       res.json(result);
     })
   );
@@ -104,6 +174,26 @@ export function startApi() {
     })
   );
 
+  // GET /api/events/stream — Server-Sent Events endpoint for live event feed
+  app.get("/api/events/stream", (req, res) => {
+    res.setHeader("Content-Type", "text/event-stream");
+    res.setHeader("Cache-Control", "no-cache, no-transform");
+    res.setHeader("Connection", "keep-alive");
+    res.setHeader("X-Accel-Buffering", "no");
+    res.flushHeaders?.();
+
+    const onEvent = (event) => {
+      res.write(`data: ${JSON.stringify(event)}\n\n`);
+    };
+
+    eventEmitter.on("event", onEvent);
+
+    req.on("close", () => {
+      eventEmitter.off("event", onEvent);
+      res.end();
+    });
+  });
+
   // GET /api/events/:seq
   app.get(
     "/api/events/:seq",
@@ -118,6 +208,18 @@ export function startApi() {
         return res.status(404).json({ error: "Not found" });
       }
       res.json(ev);
+    })
+  );
+
+  // GET /api/contracts?q=&page=&limit= — paginated list of registered contracts,
+  // optionally filtered by name/description via case-insensitive search.
+  app.get(
+    "/api/contracts",
+    asyncHandler(async (req, res) => {
+      const page = Number(req.query.page) || 1;
+      const limit = Number(req.query.limit) || 25;
+      const result = await db.getContracts({ q: req.query.q, page, limit });
+      res.json(result);
     })
   );
 
@@ -137,6 +239,11 @@ export function startApi() {
   app.post(
     "/api/contracts",
     asyncHandler(async (req, res) => {
+      const validationError = validateContractPayload(req.body);
+      if (validationError) {
+        return res.status(400).json({ error: validationError });
+      }
+
       const existing = await db.getContractMeta(req.body.id);
       const registeredBy = req.body.registered_by ?? existing?.registered_by;
 
@@ -151,13 +258,31 @@ export function startApi() {
     })
   );
 
+  // DELETE /api/contracts/:id — remove contract ABI metadata (admin-authenticated)
+  app.delete(
+    "/api/contracts/:id",
+    requireAdminKey,
+    asyncHandler(async (req, res) => {
+      const existing = await db.getContractMeta(req.params.id);
+      if (!existing) {
+        return res.status(404).json({ error: "Not found" });
+      }
+      await db.deleteContractMeta(req.params.id);
+      res.status(204).send();
+    })
+  );
+
   // GET /api/wallet/:address
   app.get(
     "/api/wallet/:address",
     asyncHandler(async (req, res) => {
+      const address = req.params.address;
+      if (!isValidStellarAddress(address)) {
+        return res.status(400).json({ error: "Invalid Stellar address" });
+      }
       const page = Number(req.query.page) || 1;
       const limit = Number(req.query.limit) || 25;
-      const result = await db.getWalletEvents(req.params.address, { page, limit });
+      const result = await db.getWalletEvents(address, { page, limit });
       res.json(result);
     })
   );
@@ -174,6 +299,7 @@ export function startApi() {
 
       // Allow caller to bypass the metadata lookup with an explicit decimals override.
       let decimals;
+      let metadataWarning = null;
       if (req.query.decimals !== undefined) {
         const parsed = parseInt(req.query.decimals, 10);
         if (isNaN(parsed) || parsed < 0 || parsed > 38) {
@@ -186,13 +312,41 @@ export function startApi() {
         try {
           const meta = await fetchTokenMetadata(contractId);
           decimals = meta.decimals;
-        } catch {
-          /* use default */
+        } catch (err) {
+          console.warn(
+            `[volume] metadata fetch failed for ${contractId} — using default decimals=7:`,
+            err?.message ?? err
+          );
+          metadataWarning = "decimals defaulted to 7";
         }
       }
 
       const volume = await db.get24hVolume(contractId, decimals);
-      res.json({ contract_id: contractId, window: "24h", ...volume });
+      res.json({
+        contract_id: contractId,
+        window: "24h",
+        ...volume,
+        ...(metadataWarning ? { metadata_warning: metadataWarning } : {}),
+      });
+    })
+  );
+
+  // GET /api/tokens/:id/metadata — SEP-41 token metadata
+  app.get(
+    "/api/tokens/:id/metadata",
+    asyncHandler(async (req, res) => {
+      const contractId = req.params.id;
+      try {
+        const meta = await fetchTokenMetadata(contractId);
+        res.json({
+          contract_id: contractId,
+          name: meta.name,
+          symbol: meta.symbol,
+          decimals: meta.decimals,
+        });
+      } catch {
+        res.status(404).json({ error: "Token not found or not SEP-41 compliant" });
+      }
     })
   );
 
@@ -200,14 +354,14 @@ export function startApi() {
     res.status(404).json({ error: "Not found" });
   });
 
-  // Global Error Handler Middleware
-  app.use((err, req, res, _next) => {
-    console.error("API Error:", err);
-    if (res.headersSent) {
-      return;
-    }
-    res.status(500).json({ error: err.message || "Internal Server Error" });
-  });
+  app.use(errorHandler);
 
-  app.listen(PORT, () => console.log(`API listening on :${PORT}`));
+  return app;
 }
+
+export function startApi(port = Number(PORT)) {
+  const app = createApp();
+  return app.listen(port);
+}
+
+

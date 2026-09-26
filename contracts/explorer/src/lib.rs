@@ -208,33 +208,7 @@ impl ExplorerContract {
             panic_with_error!(env, Error::Unauthorized);
         }
     }
-
-    /// Read the current event sequence counter from instance storage.
-    fn event_seq(env: &Env) -> u64 {
-        env.storage()
-            .instance()
-            .get(&DataKey::EventSeq)
-            .unwrap_or_else(|| panic_with_error!(env, Error::NotFound))
-    }
-
-    /// Validate `ContractMeta` field limits.
-    ///
-    /// Rejects ABI registrations that exceed the on-chain size caps so that
-    /// a single call cannot bloat storage without limit.  Also enforces that
-    /// every `ParamDef.kind` is a known `ParamKind` variant — the enum type
-    /// already guarantees this at the XDR layer, so this is a belt-and-
-    /// suspenders check that documents the invariant explicitly.
-    fn validate_meta(env: &Env, meta: &ContractMeta) {
-        if meta.functions.len() > MAX_FUNCTIONS {
-            panic_with_error!(env, Error::LimitExceeded);
-        }
-        for i in 0..meta.functions.len() {
-            let f = meta.functions.get(i).unwrap();
-            if f.params.len() > MAX_PARAMS {
-                panic_with_error!(env, Error::LimitExceeded);
-            }
-        }
-    }
+    
 }
 
 #[contractimpl]
@@ -276,6 +250,7 @@ impl ExplorerContract {
     /// emergency recovery procedure.
     pub fn transfer_admin(env: Env, current_admin: Address, new_admin: Address) {
         current_admin.require_auth();
+        // See SECURITY.md's Admin Transfer Procedure for the required auth envelope.
         new_admin.require_auth();
 
         let stored = Self::admin(&env);
@@ -380,6 +355,17 @@ impl ExplorerContract {
             panic_with_error!(&env, Error::AlreadyExists);
         }
         env.storage().persistent().set(&key, &meta);
+
+        let mut contract_ids: Vec<BytesN<32>> = env.storage()
+            .persistent()
+            .get(&DataKey::ContractList)
+            .unwrap_or_else(|| Vec::new(&env));
+        contract_ids.push_back(contract_id.clone());
+        env.storage().persistent().set(&DataKey::ContractList, &contract_ids);
+        env.storage().persistent().extend_ttl(
+            &DataKey::ContractList, TTL_THRESHOLD, TTL_EXTEND_TO,
+        );
+
         Self::bump_ttl(&env);
         env.events().publish(
             (symbol_short!("register"), contract_id),
@@ -447,8 +433,13 @@ impl ExplorerContract {
         // Only the admin or an allowlisted indexer may submit events.
         Self::require_submitter(&env, &caller);
 
-        // Guard against large blobs bloating on-chain storage.
+        // Guard against large blobs or descriptions bloating on-chain storage.
         if raw_data.len() > MAX_RAW_DATA_BYTES {
+            panic_with_error!(&env, Error::LimitExceeded);
+        }
+
+        // Enforce a maximum description size to avoid unbounded rent growth.
+        if description.len() as u32 > MAX_DESCRIPTION_LEN {
             panic_with_error!(&env, Error::LimitExceeded);
         }
 
@@ -656,7 +647,7 @@ mod tests {
 
     #[test]
     fn test_submit_event_max_description_len_ok() {
-        let (env, client) = setup();
+        let (env, client) = setup!();
         let admin = Address::generate(&env);
         client.init(&admin);
 
@@ -674,7 +665,7 @@ mod tests {
     #[test]
     #[should_panic]
     fn test_submit_event_oversized_description_panics() {
-        let (env, client) = setup();
+        let (env, client) = setup!();
         let admin = Address::generate(&env);
         client.init(&admin);
 
@@ -766,6 +757,26 @@ mod tests {
         let cid: BytesN<32> = BytesN::from_array(&env, &[8u8; 32]);
         let meta = meta_with(&env, &admin, 1, MAX_PARAMS + 1);
         client.register_contract(&admin, &cid, &meta);
+    }
+
+    #[test]
+    fn test_get_contracts_returns_registered_ids() {
+        let (env, client) = setup!();
+        let admin = Address::generate(&env);
+        client.init(&admin);
+
+        let cid_1: BytesN<32> = BytesN::from_array(&env, &[10u8; 32]);
+        let cid_2: BytesN<32> = BytesN::from_array(&env, &[11u8; 32]);
+        let meta_1 = meta_with(&env, &admin, 1, 1);
+        let meta_2 = meta_with(&env, &admin, 2, 1);
+
+        client.register_contract(&admin, &cid_1, &meta_1);
+        client.register_contract(&admin, &cid_2, &meta_2);
+
+        let ids = client.get_contracts();
+        assert_eq!(ids.len(), 2);
+        assert_eq!(ids.get(0).unwrap(), cid_1);
+        assert_eq!(ids.get(1).unwrap(), cid_2);
     }
 
     #[test]

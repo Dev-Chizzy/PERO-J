@@ -63,6 +63,16 @@ function isExecutionError(msg) {
   return EXECUTION_ERROR_PATTERNS.some((p) => p.test(msg));
 }
 
+export function isMissingFunctionError(err) {
+  const msg = String(err?.message ?? err?.error ?? err ?? "");
+  return (
+    /fn[_ ]not[_ ]found/i.test(msg) ||
+    /function not found/i.test(msg) ||
+    /no such function/i.test(msg) ||
+    /invalid function/i.test(msg)
+  );
+}
+
 function isRateLimitError(err) {
   const status = err?.status || err?.response?.status;
   const msg = String(err?.message || err?.error || err || "");
@@ -100,6 +110,10 @@ export async function mapWithConcurrency(items, limit, mapper) {
         // A failing mapper must resolve to a concrete value. Leaving the slot
         // empty creates a hole in the array, and every() skips holes entirely —
         // so a throw would silently be reported as compliance.
+        // A throwing mapper must never leave a hole in results. Treat the
+        // item as non-compliant (false) so the caller's
+        // Object.values(results).every(Boolean) check correctly reports the
+        // contract as non-compliant instead of silently skipping the check.
         results[currentIndex] = false;
       }
     }
@@ -108,6 +122,8 @@ export async function mapWithConcurrency(items, limit, mapper) {
   await Promise.all(Array.from({ length: Math.min(limit, items.length) }, () => worker()));
   return results;
 }
+
+export { mapWithConcurrency };
 
 async function functionExists(contract, fnName, args) {
   const account = new Account(DUMMY_SOURCE, "0");

@@ -15,9 +15,9 @@ import pg from "pg";
 
 // ── in-memory SQL mock ────────────────────────────────────────────────────────
 
-const _calls = [];          // { sql, params }[]
-let _nextRow = null;        // override row returned by the next query
-let _queryError = null;     // if set, next query throws this error
+const _calls = []; // { sql, params }[]
+let _nextRow = null; // override row returned by the next query
+let _queryError = null; // if set, next query throws this error
 
 function resetMock() {
   _calls.length = 0;
@@ -67,7 +67,7 @@ pg.Pool.prototype.query = async (sql, params) => {
 pg.Pool.prototype.end = async () => {};
 
 // Import AFTER patching
-import { db } from "../src/db.js";
+import { db, getPoolSize } from "../src/db.js";
 
 // ── tests ─────────────────────────────────────────────────────────────────────
 
@@ -111,16 +111,32 @@ describe("db.upsertEvent()", () => {
   it("includes ON CONFLICT DO NOTHING for idempotency", async () => {
     await db.upsertEvent(sampleEvent);
     const { sql } = lastCall();
-    assert.ok(
-      sql.toUpperCase().includes("ON CONFLICT"),
-      "expected ON CONFLICT clause"
-    );
+    assert.ok(sql.toUpperCase().includes("ON CONFLICT"), "expected ON CONFLICT clause");
   });
 
   it("passes contract_id as first parameter", async () => {
     await db.upsertEvent(sampleEvent);
     const { params } = lastCall();
     assert.equal(params[0], sampleEvent.contract_id);
+  });
+
+  it("persists onchain_seq when provided", async () => {
+    const eventWithSeq = { ...sampleEvent, onchain_seq: 42 };
+    await db.upsertEvent(eventWithSeq);
+    const { params } = lastCall();
+    assert.equal(params[params.length - 1], 42, "expected onchain_seq as last parameter");
+  });
+
+  it("passes null for onchain_seq when not provided", async () => {
+    await db.upsertEvent(sampleEvent);
+    const { params } = lastCall();
+    assert.equal(params[params.length - 1], null, "expected null onchain_seq when not provided");
+  });
+
+  it("includes onchain_seq column in INSERT statement", async () => {
+    await db.upsertEvent(sampleEvent);
+    const { sql } = lastCall();
+    assert.ok(sql.includes("onchain_seq"), "expected onchain_seq column in INSERT");
   });
 });
 
@@ -168,6 +184,17 @@ describe("db.getEvents()", () => {
     );
   });
 
+  it("escapes wildcard characters in q for ILIKE searches", async () => {
+    _nextRow = { count: "0" };
+    await db.getEvents({ q: "100% swap_" });
+    const firstSql = _calls[0]?.sql ?? "";
+    const firstParams = _calls[0]?.params ?? [];
+
+    assert.ok(firstSql.toUpperCase().includes("ILIKE"), "expected ILIKE in search query");
+    assert.ok(firstSql.toUpperCase().includes("ESCAPE"), "expected ESCAPE clause");
+    assert.deepEqual(firstParams, ["%100\\% swap\\_%"]);
+  });
+
   it("defaults to page 1, limit 25", async () => {
     _nextRow = { count: "0" };
     const result = await db.getEvents();
@@ -208,6 +235,17 @@ describe("db.upsertContractMeta()", () => {
   });
 });
 
+describe("db.deleteContractMeta()", () => {
+  beforeEach(() => resetMock());
+
+  it("executes a DELETE query with the contract id", async () => {
+    await db.deleteContractMeta("CABC");
+    const { sql, params } = lastCall();
+    assert.ok(sql.toUpperCase().includes("DELETE"), "expected DELETE");
+    assert.equal(params[0], "CABC");
+  });
+});
+
 describe("db.getCursor() / db.setCursor()", () => {
   beforeEach(() => resetMock());
 
@@ -220,6 +258,21 @@ describe("db.getCursor() / db.setCursor()", () => {
     _nextRow = { value: "5000000" };
     const result = await db.getCursor();
     assert.equal(result, 5000000);
+  });
+
+  it("getCursor returns null and warns when value is corrupted", async () => {
+    const originalWarn = console.warn;
+    const warnings = [];
+    console.warn = (msg) => warnings.push(msg);
+    try {
+      _nextRow = { value: "abc" };
+      const result = await db.getCursor();
+      assert.equal(result, null);
+      assert.equal(warnings.length, 1, "expected a warning to be logged");
+      assert.ok(warnings[0].includes("Invalid cursor"), "warning should mention invalid cursor");
+    } finally {
+      console.warn = originalWarn;
+    }
   });
 
   it("setCursor executes an INSERT ... ON CONFLICT query", async () => {
@@ -236,7 +289,9 @@ describe("db.getWalletEvents()", () => {
 
   it("returns pagination shape", async () => {
     _nextRow = { count: "0" };
-    const result = await db.getWalletEvents("GAAZI4TCR3TY5OJHCTJC2A4QSY6CJWJH5IAJTGKIN2ER7LBNVKOCCWN");
+    const result = await db.getWalletEvents(
+      "GAAZI4TCR3TY5OJHCTJC2A4QSY6CJWJH5IAJTGKIN2ER7LBNVKOCCWN"
+    );
     assert.ok("events" in result);
     assert.ok("total" in result);
     assert.ok("page" in result);
@@ -252,6 +307,37 @@ describe("db.getWalletEvents()", () => {
       sqls.some((s) => s.includes("event_addresses")),
       "expected event_addresses in query"
     );
+  });
+
+  it("uses COALESCE to handle NULL event_addresses safely", async () => {
+    _nextRow = { count: "0" };
+    const addr = "GAAZI4TCR3TY5OJHCTJC2A4QSY6CJWJH5IAJTGKIN2ER7LBNVKOCCWN";
+    await db.getWalletEvents(addr);
+    const sqls = _calls.map((c) => c.sql);
+    assert.ok(
+      sqls.some((s) => s.includes("COALESCE(event_addresses, ARRAY[]::TEXT[])")),
+      "expected COALESCE guard in query"
+    );
+  });
+});
+
+describe("db.getLeaderboard()", () => {
+  beforeEach(() => resetMock());
+
+  it("returns top contracts with name and event_count", async () => {
+    _nextRow = { contract_id: "C1", name: "Swap", event_count: 5 };
+    const result = await db.getLeaderboard();
+    assert.ok(Array.isArray(result));
+    assert.equal(result[0].contract_id, "C1");
+    assert.equal(result[0].name, "Swap");
+    assert.equal(result[0].event_count, 5);
+  });
+
+  it("caps limit at 50", async () => {
+    await db.getLeaderboard(100);
+    const { sql, params } = lastCall();
+    assert.ok(sql.includes("LIMIT"));
+    assert.equal(params[params.length - 1], 50);
   });
 });
 
@@ -277,4 +363,157 @@ describe("db.get24hVolume()", () => {
     const result = await db.get24hVolume("CABC", 7);
     assert.equal(result.volume_scaled, "1.0000000");
   });
+
+  it("matches JSON objects even with leading whitespace, and excludes non-objects", async () => {
+    _nextRow = { volume_raw: "0" };
+    await db.get24hVolume("CABC");
+    const { sql } = lastCall();
+    assert.ok(!sql.includes("LIKE '{%'"), "should not use the fragile LIKE '{%' heuristic");
+    assert.ok(sql.includes("raw_data ~ '^\\s*\\{'"), "expected regex object-shape check");
+    assert.match(" {\"amount\":\"1\"}", /^\s*\{/);
+    assert.doesNotMatch("[1,2,3]", /^\s*\{/);
+  });
 });
+
+describe("db.getStats()", () => {
+  beforeEach(() => resetMock());
+
+  it("returns { total_events, total_contracts, unique_addresses } with 0 for empty db", async () => {
+    const stats = await db.getStats();
+    assert.deepEqual(stats, {
+      total_events: 0,
+      total_contracts: 0,
+      unique_addresses: 0,
+    });
+    assert.equal(_calls.length, 3, "expected 3 count queries");
+  });
+
+  it("executes COUNT queries for events, contracts, and distinct addresses", async () => {
+    await db.getStats();
+    const sqls = _calls.map((c) => c.sql);
+    assert.ok(sqls.some((s) => s.includes("FROM events")), "expected count from events");
+    assert.ok(sqls.some((s) => s.includes("FROM contracts")), "expected count from contracts");
+    assert.ok(
+      sqls.some((s) => s.includes("event_addresses")),
+      "expected distinct count from event_addresses"
+    );
+  });
+});
+
+describe("db.getContracts()", () => {
+  beforeEach(() => resetMock());
+
+  it("returns { contracts, total, page, limit } pagination shape", async () => {
+    _nextRow = { count: "0" };
+    const result = await db.getContracts();
+    assert.ok("contracts" in result, "missing contracts key");
+    assert.ok("total" in result, "missing total key");
+    assert.ok("page" in result, "missing page key");
+    assert.ok("limit" in result, "missing limit key");
+  });
+
+  it("defaults to page 1, limit 25", async () => {
+    _nextRow = { count: "0" };
+    const result = await db.getContracts();
+    assert.equal(result.page, 1);
+    assert.equal(result.limit, 25);
+  });
+
+  it("queries the contracts table with ORDER BY name ASC", async () => {
+    _nextRow = { count: "0" };
+    await db.getContracts();
+    const sqls = _calls.map((c) => c.sql);
+    assert.ok(
+      sqls.some((s) => s.includes("FROM contracts")),
+      "expected query against contracts table"
+    );
+    assert.ok(
+      sqls.some((s) => s.toUpperCase().includes("ORDER BY NAME ASC")),
+      "expected ORDER BY name ASC"
+    );
+  });
+
+  it("includes ILIKE filter when q is provided", async () => {
+    _nextRow = { count: "0" };
+    await db.getContracts({ q: "stellar" });
+    const sqls = _calls.map((c) => c.sql);
+    assert.ok(
+      sqls.some((s) => s.toUpperCase().includes("ILIKE")),
+      "expected ILIKE filter in query when q is provided"
+    );
+    const params = _calls.flatMap((c) => c.params ?? []);
+    assert.ok(
+      params.some((p) => typeof p === "string" && p.includes("stellar")),
+      "expected q value in query params"
+    );
+  });
+
+  it("returns the contract rows when found", async () => {
+    _nextRow = { count: "1" };
+    const result = await db.getContracts({ page: 1 });
+    assert.ok(Array.isArray(result.contracts));
+  });
+
+  it("respects custom page and limit", async () => {
+    _nextRow = { count: "0" };
+    const result = await db.getContracts({ page: 3, limit: 10 });
+    assert.equal(result.page, 3);
+    assert.equal(result.limit, 10);
+    // offset should be (3-1)*10 = 20 — verify it's passed to query
+    const params = _calls.flatMap((c) => c.params ?? []);
+    assert.ok(params.includes(20), "expected offset=20 in query params");
+  });
+});
+
+describe("db.getEvents() full-text search (#321)", () => {
+  beforeEach(() => resetMock());
+
+  it("uses plainto_tsquery when q contains only word characters", async () => {
+    _nextRow = { count: "0" };
+    await db.getEvents({ q: "swap usdc" });
+    const sqls = _calls.map((c) => c.sql);
+    assert.ok(
+      sqls.some((s) => s.includes("plainto_tsquery")),
+      "expected plainto_tsquery for safe word-only query"
+    );
+    assert.ok(
+      sqls.some((s) => s.includes("description_tsv")),
+      "expected description_tsv column reference"
+    );
+  });
+
+  it("falls back to ILIKE when q contains special characters", async () => {
+    _nextRow = { count: "0" };
+    await db.getEvents({ q: "swap & usdc" });
+    const sqls = _calls.map((c) => c.sql);
+    assert.ok(
+      sqls.some((s) => s.toUpperCase().includes("ILIKE")),
+      "expected ILIKE fallback for queries with special characters"
+    );
+    assert.ok(
+      !sqls.some((s) => s.includes("plainto_tsquery")),
+      "should not use plainto_tsquery for queries with special characters"
+    );
+  });
+
+  it("passes the q value correctly into tsvector query params", async () => {
+    _nextRow = { count: "0" };
+    await db.getEvents({ q: "transfer" });
+    const params = _calls.flatMap((c) => c.params ?? []);
+    assert.ok(
+      params.includes("transfer"),
+      "expected raw q value (no %%) passed for tsquery"
+    );
+  });
+
+  it("passes the q value with % wildcards for ILIKE fallback", async () => {
+    _nextRow = { count: "0" };
+    await db.getEvents({ q: "100 USDC+XLM" });
+    const params = _calls.flatMap((c) => c.params ?? []);
+    assert.ok(
+      params.some((p) => typeof p === "string" && p.startsWith("%") && p.endsWith("%")),
+      "expected %%q%% wildcard pattern for ILIKE fallback"
+    );
+  });
+});
+
