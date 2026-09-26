@@ -10,3 +10,7 @@ Already implemented in `frontend/src/pages/Home.tsx`: "Showing N of M events" is
 
 Already implemented in `frontend/src/pages/WalletPage.tsx`: Next uses `disabled={page * limit >= total}` exclusively, matching `Home.tsx`. No code change needed.
 
+## #799 ContractPage events query guard
+
+Already implemented in `frontend/src/pages/ContractPage.tsx`: the events query uses `enabled: !!id && !metaLoading && !!meta`. No code change needed.
+
