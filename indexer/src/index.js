@@ -7,6 +7,7 @@ import { decode, evictContractMeta } from "./decoder.js";
 import { reloadSacMap } from "./sac.js";
 import { validateNetwork } from "./validateNetwork.js";
 import { submitEvent } from "./contract.js";
+import { resolvePollMs } from "./resolvePollMs.js";
 
 dotenv.config();
 
@@ -14,7 +15,7 @@ dotenv.config();
 
 const RPC_URL = process.env.SOROBAN_RPC_URL || "https://soroban-testnet.stellar.org";
 const START_LEDGER = Number(process.env.START_LEDGER || 0);
-const POLL_MS = Number(process.env.POLL_MS || 5000);
+const POLL_MS = resolvePollMs();
 const RPC_ERROR_THRESHOLD = 3;
 const EXPLORER_CONTRACT_ID = process.env.SOROBAN_EXPLORER_CONTRACT_ID;
 
