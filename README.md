@@ -366,3 +366,8 @@ PRs welcome. Please open an issue first for large changes.
 ## License
 
 [MIT](LICENSE)
+
+## Handsoff notes
+
+<!-- handsoff-issue-831 -->
+- #831: Add `stake` and `unstake` cases to `buildDescription()`
