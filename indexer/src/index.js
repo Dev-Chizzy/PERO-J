@@ -136,9 +136,16 @@ process.on("SIGHUP", () => {
 
 async function run() {
   await db.init();
-  await registerFixtures().catch((err) => {
+
+  // Pre-register the StellarSwap, Blend, and Phoenix ABI fixtures so decoded
+  // events appear immediately when the indexer starts. Registration failures
+  // are logged but must not prevent the indexer from running.
+  try {
+    await registerFixtures();
+  } catch (err) {
     console.error("[fixtures] failed to register ABI fixtures:", err.message);
-  });
+  }
+
   startApi();
 
   await validateNetwork(rpc);
