@@ -81,7 +81,7 @@ async function indexLedger(ledger) {
  * @param {object} ev - Raw event object from SorobanRpc.getEvents()
  * @returns {boolean}
  */
-function isExplorerUpdateEvent(ev) {
+export function isExplorerUpdateEvent(ev) {
   if (!EXPLORER_CONTRACT_ID || ev.contractId !== EXPLORER_CONTRACT_ID) {
     return false;
   }
@@ -103,7 +103,7 @@ function isExplorerUpdateEvent(ev) {
  * @param {object} ev - Raw event object from SorobanRpc.getEvents()
  * @returns {string|null}
  */
-function updateEventContractId(ev) {
+export function updateEventContractId(ev) {
   const topic = ev.topic?.[1];
   if (!topic) {
     return null;
