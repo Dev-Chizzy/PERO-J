@@ -366,6 +366,7 @@ PRs welcome. Please open an issue first for large changes.
 ## Note to maintainers
 
 - Issue #792: `EventPage` already validates the `seq` param (`isValidSeq`) and skips the API request for invalid values; no code change needed.
+- Issue #793: `CopyButton` already accepts an `ariaLabel` prop applied as `aria-label`, and all usages pass labels; no code change needed.
 
 ---
 
