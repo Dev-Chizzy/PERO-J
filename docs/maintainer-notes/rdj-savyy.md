@@ -8,3 +8,6 @@ Already implemented: exported `errorHandler` in `indexer/src/api.js` logs `conso
 
 ## #806 Version footer
 Already implemented: `frontend/src/components/Footer.tsx` reads `VITE_APP_VERSION` / `VITE_COMMIT_SHA` with placeholders (`dev` / `local`); variables are documented in `.env.example`. Note: no CI workflow currently builds the frontend, so there is no build step to inject them into yet.
+
+## #807 e2e env vars
+Already implemented: `INDEXER_URL` in `tests/e2e/e2e.test.js` and `FRONTEND_URL` in `tests/e2e/playwright.config.ts`, defaulting to localhost; documented in `tests/e2e/README.md`.
