@@ -263,28 +263,46 @@ export function createApp() {
     })
   );
 
-  // POST /api/contracts — register ABI metadata
+  // POST /api/contracts — register contract ABI metadata
   app.post(
     "/api/contracts",
+    requireAdminKey,
     asyncHandler(async (req, res) => {
       const validationError = validateContractPayload(req.body);
       if (validationError) {
         return res.status(400).json({ error: validationError });
       }
 
-      const existing = await db.getContractMeta(req.body.id);
-      const registeredBy = req.body.registered_by ?? existing?.registered_by;
-
-      if (existing?.registered_by && !registeredBy) {
-        return res
-          .status(400)
-          .json({ error: "registered_by is required to update contract metadata" });
-      }
-
-      await db.upsertContractMeta({ ...req.body, registered_by: registeredBy });
-      res.status(201).json({ ok: true });
+      const { id, name, functions } = req.body;
+      const meta = await db.upsertContractMeta({ id, name, functions });
+      res.status(201).json(meta);
     })
   );
 
+  // GET /api/contracts/:id/metadata — fetch SEP-41 token metadata for a contract
+  app.get(
+    "/api/contracts/:id/metadata",
+    asyncHandler(async (req, res) => {
+      const metadata = await fetchTokenMetadata(req.params.id);
+      if (!metadata) {
+        return res.status(404).json({ error: "Not found" });
+      }
+      res.json(metadata);
+    })
+  );
+
+  app.use(errorHandler);
+
   return app;
+}
+
+/**
+ * Starts the API server by building the Express app and listening on the
+ * configured port.
+ *
+ * @param {number|string} [port=PORT]
+ * @returns {import("http").Server}
+ */
+export function startApi(port = PORT) {
+  return createApp().listen(port);
 }
