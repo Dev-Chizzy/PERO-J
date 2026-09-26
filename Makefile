@@ -1,7 +1,7 @@
 -include .env
 export EXPLORER_CONTRACT_ID
 
-.PHONY: build test deploy redeploy indexer frontend clean seed-testnet load-test changelog db
+.PHONY: build test deploy redeploy indexer frontend clean seed-testnet load-test changelog db migrate
 
 # ── Contract ──────────────────────────────────────────────────────────────────
 build:
@@ -40,6 +40,12 @@ indexer-install:
 
 indexer:
 	cd indexer && NODE_ENV=production npm start
+
+# ── Migrations (issue #858) ───────────────────────────────────────────────────
+# Run db.init() in isolation — applies schema migrations without starting the
+# polling loop or the API server. Exits 0 on success, non-zero on failure.
+migrate:
+	cd indexer && NODE_ENV=production npm run migrate
 
 # ── Frontend ──────────────────────────────────────────────────────────────────
 frontend-install:
@@ -151,6 +157,7 @@ help:
 	@printf "Available targets:\n"
 	@printf "  make build              Build the contract WASM\n"
 	@printf "  make test               Run contract tests\n"
+	@printf "  make migrate            Apply DB migrations without starting the indexer\n"
 	@printf "  make dev                Start the indexer and frontend\n"
 	@printf "  make e2e                Run the full end-to-end suite\n"
 	@printf "  make changelog          Update CHANGELOG.md with unreleased changes\n"
