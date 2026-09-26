@@ -366,3 +366,8 @@ PRs welcome. Please open an issue first for large changes.
 ## License
 
 [MIT](LICENSE)
+
+## Handsoff notes
+
+<!-- handsoff-issue-860 -->
+- #860: Add `ContractList` to track all registered contract IDs on-chain
