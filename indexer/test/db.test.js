@@ -16,11 +16,13 @@ import pg from "pg";
 // ── in-memory SQL mock ────────────────────────────────────────────────────────
 
 const _calls = []; // { sql, params }[]
+const _appliedMigrations = new Set();
 let _nextRow = null; // override row returned by the next query
 let _queryError = null; // if set, next query throws this error
 
 function resetMock() {
   _calls.length = 0;
+  _appliedMigrations.clear();
   _nextRow = null;
   _queryError = null;
 }
@@ -38,6 +40,12 @@ const fakeClient = {
       throw err;
     }
     _calls.push({ sql, params });
+    if (sql.includes("SELECT 1 FROM schema_migrations WHERE id = $1")) {
+      return { rows: [], rowCount: _appliedMigrations.has(params[0]) ? 1 : 0 };
+    }
+    if (sql.includes("INSERT INTO schema_migrations")) {
+      _appliedMigrations.add(params[0]);
+    }
     if (_nextRow !== null) {
       const row = _nextRow;
       _nextRow = null;
@@ -70,6 +78,35 @@ pg.Pool.prototype.end = async () => {};
 import { db, getPoolSize } from "../src/db.js";
 
 // ── tests ─────────────────────────────────────────────────────────────────────
+
+describe("db.init() migrations", () => {
+  beforeEach(() => resetMock());
+
+  it("runs migrations on a fresh database", async () => {
+    await db.init();
+    const migrationSql = _calls.find((call) =>
+      call.sql.includes("ALTER TABLE events ADD COLUMN IF NOT EXISTS sac_asset TEXT")
+    );
+    assert.ok(migrationSql, "expected a migration to add sac_asset idempotently");
+  });
+
+  it("adds sac_asset when earlier migrations are already recorded", async () => {
+    for (const id of [1, 2, 3, 4, 5]) _appliedMigrations.add(id);
+
+    await db.init();
+
+    const migration = _calls.find((call) =>
+      call.sql.includes("ALTER TABLE events ADD COLUMN IF NOT EXISTS sac_asset TEXT")
+    );
+    assert.ok(migration, "expected the repair migration to run");
+    assert.ok(
+      _calls.some(
+        (call) => call.sql.includes("INSERT INTO schema_migrations") && call.params[0] === 6
+      ),
+      "expected migration 6 to be recorded"
+    );
+  });
+});
 
 describe("db.ping()", () => {
   beforeEach(() => resetMock());
@@ -137,6 +174,13 @@ describe("db.upsertEvent()", () => {
     await db.upsertEvent(sampleEvent);
     const { sql } = lastCall();
     assert.ok(sql.includes("onchain_seq"), "expected onchain_seq column in INSERT");
+  });
+
+  it("persists sac_asset when provided", async () => {
+    await db.upsertEvent({ ...sampleEvent, sac_asset: "USDC" });
+    const { sql, params } = lastCall();
+    assert.ok(sql.includes("sac_asset"), "expected sac_asset column in INSERT");
+    assert.equal(params[7], "USDC");
   });
 });
 

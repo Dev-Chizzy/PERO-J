@@ -118,6 +118,13 @@ const migrations = [
         ON events USING GIN(description_tsv);
     `,
   },
+  {
+    id: 6,
+    name: "ensure_events_sac_asset_column",
+    sql: `
+      ALTER TABLE events ADD COLUMN IF NOT EXISTS sac_asset TEXT;
+    `,
+  },
 ];
 
 process.on("unhandledRejection", async (err) => {
