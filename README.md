@@ -366,3 +366,8 @@ PRs welcome. Please open an issue first for large changes.
 ## License
 
 [MIT](LICENSE)
+
+## Handsoff notes
+
+<!-- handsoff-issue-854 -->
+- #854: Cap `getEvents` limit at `MAX_PAGE (200)` in the database layer
