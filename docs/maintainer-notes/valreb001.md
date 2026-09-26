@@ -11,3 +11,7 @@ Already implemented: `validateNetwork(rpc)` in `indexer/src/validateNetwork.js` 
 ## #810 sourceAccountNotFound retry in sep41Metadata
 
 Already implemented in `simulateCall` in `indexer/src/sep41Metadata.js`: on a source-account-not-found simulation error with sequence "0" it retries with "1", and `OPERATIONAL_ACCOUNT` is used when set. The function has JSDoc and the behavior is tested in `indexer/test/sep41Metadata.test.js`. No code change needed; this issue can be closed.
+
+## #811 getWalletEvents pagination
+
+Already implemented: `getWalletEvents` in `indexer/src/db.js` runs a separate `COUNT(*)` query and returns `{ events, total, page, limit }`; `frontend/src/pages/WalletPage` disables Next via `page * limit >= total`. No code change needed; this issue can be closed.
