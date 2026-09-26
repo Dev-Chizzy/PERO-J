@@ -371,3 +371,6 @@ PRs welcome. Please open an issue first for large changes.
 
 <!-- handsoff-issue-831 -->
 - #831: Add `stake` and `unstake` cases to `buildDescription()`
+
+<!-- handsoff-issue-832 -->
+- #832: Add `swap` case to `buildDescription()`
