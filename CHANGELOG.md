@@ -840,6 +840,14 @@ Issue [#118](../../issues/118) — Contract admin key management
 
 ### Documentation
 
+- Note [#803](../../issues/803) RPC client recreation already implemented ([`cb5671e`](../../commit/cb5671eb67d5947298715e066b25f15d80c67d41))
+
+- Note [#801](../../issues/801) GET /api/contracts already implemented ([`23dfd3d`](../../commit/23dfd3d7a86b67b47d9b79fd0162c3f5f79cc0da))
+
+- Note [#800](../../issues/800) EventTable stable keys already implemented ([`9fabe3f`](../../commit/9fabe3f40e51cdac03fa881c07ac12ffb148f957))
+
+- Auto-update CHANGELOG.md [skip ci] ([`ed86ee1`](../../commit/ed86ee159751eebede0327182ac2be5bd1fb252e))
+
 - Note [#799](../../issues/799) ContractPage events guard already present ([`f62fbf2`](../../commit/f62fbf2eaf909da89bafa03985b27e5c69a25800))
 
 - Note [#798](../../issues/798) WalletPage Next button already fixed ([`7d6649c`](../../commit/7d6649c48391cfb06710f34c640426da92d4dbba))
