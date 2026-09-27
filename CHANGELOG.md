@@ -8,6 +8,26 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ### Bug Fixes
 
+- [#865](../../issues/865) Add `WalletPage` document title update on address change ([`8081bc4`](../../commit/8081bc4f11fb84836f91a90d00076c0322885aae))
+
+Closes [#865](../../issues/865)
+
+
+- [#864](../../issues/864) Add `EventPage` with full decoded event detail view ([`cd157e4`](../../commit/cd157e46a1ba2e6130cdb08fa0ded1cd14297c53))
+
+Closes [#864](../../issues/864)
+
+
+- [#863](../../issues/863) Implement `GET /api/events` full-text search with `q` paramete ([`494189c`](../../commit/494189c376665b99ad79c78d25f2c429edc1bd17))
+
+Closes [#863](../../issues/863)
+
+
+- [#862](../../issues/862) Add `fuzz` targets for Rust contract input validation ([`24a333b`](../../commit/24a333bc35a0b2b7d3ba984f773125a367dc712c))
+
+Closes [#862](../../issues/862)
+
+
 - [#853](../../issues/853) Fix `transfer` description to read amount from event data, not ([`a76eb7e`](../../commit/a76eb7e0b47eca0aee194ef01427f033e6af9529))
 
 Closes [#853](../../issues/853)
@@ -764,6 +784,8 @@ Issue [#118](../../issues/118) — Contract admin key management
 
 
 ### Documentation
+
+- Auto-update CHANGELOG.md [skip ci] ([`5ea7331`](../../commit/5ea7331f6945c1c6fae810de41c7ab73b79354cb))
 
 - Auto-update CHANGELOG.md [skip ci] ([`dc23c01`](../../commit/dc23c01989eab5d84c36756240d38569e93c307a))
 
