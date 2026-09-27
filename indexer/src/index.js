@@ -35,6 +35,51 @@ export const health = {
   startedAt: Date.now(),
 };
 
+/**
+ * Recursively walk decoded topic/data values and collect every Stellar
+ * public key (strkey `G…`, 56 chars) found in the structure.
+ *
+ * Handles nested arrays and plain objects so addresses embedded in
+ * structs, vectors, and maps are all discovered.
+ *
+ * @param {*} values - Decoded value(s) to scan.
+ * @param {Set<string>} [found] - Accumulator for deduplication.
+ * @returns {string[]} Deduplicated list of Stellar public keys.
+ */
+export function extractAddresses(values, found = new Set()) {
+  if (values === null || values === undefined) {
+    return [...found];
+  }
+
+  if (typeof values === "string") {
+    if (values.length === 56 && values.startsWith("G")) {
+      try {
+        if (StrKey.isValidEd25519PublicKey(values)) {
+          found.add(values);
+        }
+      } catch {
+        // Not a valid strkey — ignore.
+      }
+    }
+    return [...found];
+  }
+
+  if (Array.isArray(values)) {
+    for (const item of values) {
+      extractAddresses(item, found);
+    }
+    return [...found];
+  }
+
+  if (typeof values === "object") {
+    for (const value of Object.values(values)) {
+      extractAddresses(value, found);
+    }
+  }
+
+  return [...found];
+}
+
 async function indexLedger(ledger) {
   // getEvents supports cursor-based pagination; we use ledger range here
   const res = await rpc.getEvents({
@@ -56,6 +101,7 @@ async function indexLedger(ledger) {
     }
 
     const decoded = await decode(ev);
+    decoded.event_addresses = extractAddresses([decoded.topic, decoded.data]);
     const onchain_seq = await submitEvent(decoded);
     if (onchain_seq !== null) {
       decoded.onchain_seq = onchain_seq;

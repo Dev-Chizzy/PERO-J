@@ -366,3 +366,8 @@ PRs welcome. Please open an issue first for large changes.
 ## License
 
 [MIT](LICENSE)
+
+## Handsoff notes
+
+<!-- handsoff-issue-850 -->
+- #850: Implement `transfer_admin` requiring both parties to sign
