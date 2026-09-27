@@ -840,6 +840,16 @@ Issue [#118](../../issues/118) — Contract admin key management
 
 ### Documentation
 
+- Note [#811](../../issues/811) is already implemented on main ([`35bf3f8`](../../commit/35bf3f8429c0679a9578cf015712a744e24733af))
+
+- Note [#810](../../issues/810) is already implemented on main ([`be133e2`](../../commit/be133e28ee18659e49e40f6a2f25f1132af1bb9d))
+
+- Note [#809](../../issues/809) is already implemented on main ([`4dbfb9a`](../../commit/4dbfb9a94f8cb77ad34a631a53cc780722e2ed5c))
+
+- Note [#808](../../issues/808) is already implemented on main ([`cb3631e`](../../commit/cb3631ede028afbcbcfaa4dfb9b9d772d9ef58e4))
+
+- Auto-update CHANGELOG.md [skip ci] ([`c842703`](../../commit/c842703040a0af99c594bcca29d249461deebb31))
+
 - Note [#795](../../issues/795) search debounce already implemented ([`a1fa90f`](../../commit/a1fa90f78288aeda1f1997b639d187bd4fe80bd5))
 
 - Note [#794](../../issues/794) skeleton loading states already implemented ([`7f0ad23`](../../commit/7f0ad23ebd8b4f32980d2c1510a3d5841c8bba73))
