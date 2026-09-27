@@ -88,6 +88,26 @@ Closes [#843](../../issues/843)
 Closes [#842](../../issues/842)
 
 
+- [#841](../../issues/841) Add `CONTRIBUTING.md` with PR and issue guidelines ([`ca8891f`](../../commit/ca8891f386adb68d30b9b04822a9af90b8f66254))
+
+Closes [#841](../../issues/841)
+
+
+- [#840](../../issues/840) Add Kubernetes deployment manifests ([`0ee0d54`](../../commit/0ee0d5425c2d8c45235c6605a5f7771423041c58))
+
+Closes [#840](../../issues/840)
+
+
+- [#839](../../issues/839) Add `docker-compose.yml` for local development ([`1f200c0`](../../commit/1f200c0659d7008100a1d8b614c34bec057d1f80))
+
+Closes [#839](../../issues/839)
+
+
+- [#838](../../issues/838) Add `ContractsPage` to list all registered contracts ([`e3e401b`](../../commit/e3e401b11d35d85a6ed67976aa964aa8826caf34))
+
+Closes [#838](../../issues/838)
+
+
 - React keys, search query, and debounce in EventTable and Home ([`b3be6a2`](../../commit/b3be6a2cc8b51288676a183ef53944eafffeea16))
 
 - EventTable.tsx ([#303](../../issues/303)): wrap each event pair in <React.Fragment key={ev.seq}>
@@ -704,6 +724,8 @@ Issue [#118](../../issues/118) — Contract admin key management
 
 
 ### Documentation
+
+- Auto-update CHANGELOG.md [skip ci] ([`a449e58`](../../commit/a449e5893782c0d039f580232e000354786ac766))
 
 - Auto-update CHANGELOG.md [skip ci] ([`18dd8bc`](../../commit/18dd8bc8e62397d3214ed568210dfdad84a5c102))
 
