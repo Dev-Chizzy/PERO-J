@@ -128,6 +128,26 @@ Closes [#859](../../issues/859)
 Closes [#858](../../issues/858)
 
 
+- [#837](../../issues/837) Add `GET /api/stats` endpoint for aggregate counts ([`ce54a0e`](../../commit/ce54a0ed5cce84648c13ddbd4640b9d29743dfa2))
+
+Closes [#837](../../issues/837)
+
+
+- [#836](../../issues/836) Add advisory lock to `db.init()` migrations to prevent concurr ([`ed89c74`](../../commit/ed89c7450f72b47589cc8e211c000e9d31d774cb))
+
+Closes [#836](../../issues/836)
+
+
+- [#835](../../issues/835) Remove duplicate `export function startApi` declaration from ` ([`713d2bd`](../../commit/713d2bdfdceda49bc82a6a4f3a456444a9c3419e))
+
+Closes [#835](../../issues/835)
+
+
+- [#834](../../issues/834) `validateContractPayload` must be defined in `api.js` ([`029d6c3`](../../commit/029d6c3fad47712dd9be3aa707a57b2aad880dca))
+
+Closes [#834](../../issues/834)
+
+
 - React keys, search query, and debounce in EventTable and Home ([`b3be6a2`](../../commit/b3be6a2cc8b51288676a183ef53944eafffeea16))
 
 - EventTable.tsx ([#303](../../issues/303)): wrap each event pair in <React.Fragment key={ev.seq}>
@@ -744,6 +764,8 @@ Issue [#118](../../issues/118) — Contract admin key management
 
 
 ### Documentation
+
+- Auto-update CHANGELOG.md [skip ci] ([`dc23c01`](../../commit/dc23c01989eab5d84c36756240d38569e93c307a))
 
 - Auto-update CHANGELOG.md [skip ci] ([`502ba1b`](../../commit/502ba1bb354c0ed9ca52510de8c058bcf5f026d6))
 
