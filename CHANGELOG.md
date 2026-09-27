@@ -68,6 +68,26 @@ Closes [#867](../../issues/867)
 Closes [#866](../../issues/866)
 
 
+- [#845](../../issues/845) Add CI workflow for Node.js indexer tests ([`d5c3841`](../../commit/d5c384184e7774ea16546858add803e58dc2f0e2))
+
+Closes [#845](../../issues/845)
+
+
+- [#844](../../issues/844) Add CI workflow for Rust contract tests ([`eeacd4f`](../../commit/eeacd4f311aede56c7b58a5c1891f78d9341cad6))
+
+Closes [#844](../../issues/844)
+
+
+- [#843](../../issues/843) Implement `LRU cache eviction` on `update` event from indexer ([`2c0541c`](../../commit/2c0541cfcb609c0378e9f15aef7557d3fd9afff8))
+
+Closes [#843](../../issues/843)
+
+
+- [#842](../../issues/842) Add developer documentation for ABI registration ([`dd315cf`](../../commit/dd315cfaa3542a16c3c470975ef1da0b90c45f61))
+
+Closes [#842](../../issues/842)
+
+
 - React keys, search query, and debounce in EventTable and Home ([`b3be6a2`](../../commit/b3be6a2cc8b51288676a183ef53944eafffeea16))
 
 - EventTable.tsx ([#303](../../issues/303)): wrap each event pair in <React.Fragment key={ev.seq}>
@@ -684,6 +704,8 @@ Issue [#118](../../issues/118) — Contract admin key management
 
 
 ### Documentation
+
+- Auto-update CHANGELOG.md [skip ci] ([`18dd8bc`](../../commit/18dd8bc8e62397d3214ed568210dfdad84a5c102))
 
 - Auto-update CHANGELOG.md [skip ci] ([`96a9e2f`](../../commit/96a9e2f17eacca410517e110ddf0c89667daf6a5))
 
