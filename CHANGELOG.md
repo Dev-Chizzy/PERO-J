@@ -223,6 +223,76 @@ Closes [#831](../../issues/831)
 Closes [#830](../../issues/830)
 
 
+- Use npm install instead of npm ci for frontend ([`d861fa5`](../../commit/d861fa5e74f0747a510b5bafaa4f363296cfac61))
+
+vitest@4.1.11 bundles its own vite which requires esbuild ^0.27.0||^0.28.0,
+  while the outer vite@5.3.1 requires esbuild ^0.21.3. These ranges don't
+  overlap so Linux npm resolves them into separate nested installs, producing
+  platform-specific lock file entries that a macOS-generated lock file omits.
+
+  Switching to npm install lets the resolver handle this correctly on each
+  platform without requiring a Linux-generated lock file in the repo
+
+
+- Regenerate frontend package-lock.json and pin node-version to 20.x ([`3f5f440`](../../commit/3f5f440429f26c8f972d1b2eb56d6e475af5c264))
+
+The frontend CI was failing with 'npm ci can only install packages when
+  package.json and package-lock.json are in sync' because package-lock.json
+  was missing esbuild@0.28.2 and all its platform-specific packages.
+
+  Regenerate package-lock.json by running npm install fresh. Also add npm
+  cache configuration (cache: 'npm') and pin node-version to '20.x' (string
+  form) so setup-node resolves the latest Node 20 patch rather than the
+  bare integer which can be ambiguous on newer runners
+
+
+- Resolve issues [#784](../../issues/784), [#785](../../issues/785), [#786](../../issues/786), [#787](../../issues/787) ([`5ac5e5a`](../../commit/5ac5e5a6dd9dfa83ea6d4bf7d2d5e243502a6a22))
+
+[#787](../../issues/787) — db.getContracts() LIMIT/OFFSET parameter indexing
+  - Replace fragile $${params.length+1}/+2 arithmetic with explicit push
+    into selectParams so $N indices are always correct regardless of how
+    many WHERE conditions precede LIMIT/OFFSET.
+  - Add regression test in db.test.js asserting $1/$2/$3 positions when
+    q, page, and limit are all provided.
+  - Add route-level regression test in api.contracts.test.js confirming
+    GET /api/contracts?q=swap&page=2&limit=10 forwards all three opts.
+
+  [#786](../../issues/786) — Full-text search index on events.description
+  - Migration 5 (already present) adds description_tsv TSVECTOR GENERATED
+    ALWAYS AS (to_tsvector('english', description)) STORED and GIN index
+    idx_events_description_tsv.
+  - getEvents() now branches on isWordSafe (/^[\w\s]+$/) to use
+    description_tsv @@ plainto_tsquery('english', $N) for plain-word
+    queries (index scan) and falls back to ILIKE for special-char queries.
+  - Fixes the four pre-existing failing tests in db.test.js ([#321](../../issues/321) block).
+
+  [#785](../../issues/785) — Validate POST /api/contracts payload before upsert
+  - Define and export validateContractPayload() in api.js: id required
+    non-empty string, name required non-empty string, functions optional
+    but must be array when present. Returns null for valid payloads.
+  - Add api.contracts.post.test.js with 13 unit tests for the helper and
+    9 HTTP integration tests covering all acceptance criteria (400 for
+    missing id/name, 400 for non-array functions, 201 for valid payload).
+
+  [#784](../../issues/784) — sourceAccountNotFound retry in sep41Metadata simulation
+  - Add SourceAccountNotFoundError sentinel class; simulateCall throws it
+    instead of recursing when seq=0 and the RPC reports account missing.
+  - fetchTokenMetadata calls name sequentially first; on catch retries
+    name with seq=1 and returns partial defaults for symbol/decimals
+    (exactly 2 simulate calls, no cascading retries).
+  - OPERATIONAL_ACCOUNT env var overrides dummy source; warning already
+    logged on non-testnet fallback.
+  - Fix IDS pool exhaustion in sep41Metadata.test.js (6 → 16 entries).
+
+  Additional CI fixes (pre-existing failures):
+  - decoder.js: add buildDescription handlers for supply, borrow, repay,
+    liquidate, deposit, withdraw.
+  - decoder.test.js: declare C14–C20; move approve to C19 and
+    transfer_from to C20 to eliminate LRU cache collisions.
+  - api.js: implement GET /api/events/:seq/raw route (was tested but
+    missing); registered before /:seq to prevent route shadowing.
+
+
 - React keys, search query, and debounce in EventTable and Home ([`b3be6a2`](../../commit/b3be6a2cc8b51288676a183ef53944eafffeea16))
 
 - EventTable.tsx ([#303](../../issues/303)): wrap each event pair in <React.Fragment key={ev.seq}>
@@ -839,6 +909,8 @@ Issue [#118](../../issues/118) — Contract admin key management
 
 
 ### Documentation
+
+- Auto-update CHANGELOG.md [skip ci] ([`05f4eda`](../../commit/05f4edac9aa8370cb1614b05644c9d06197a0164))
 
 - Auto-update CHANGELOG.md [skip ci] ([`f73f414`](../../commit/f73f414ab11985b7e7e0b8c8f8d7ec02c435b809))
 
