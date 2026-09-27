@@ -8,6 +8,199 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ### Bug Fixes
 
+- Resolve false instead of leaving holes in mapWithConcurrency ([`29d7bb6`](../../commit/29d7bb639d5d3c6270c691c9f658a4a1f4696b7c))
+
+A throwing mapper left its slot in the results array empty, creating a hole.
+  Array.prototype.every skips holes entirely, so a mapper failure was silently
+  reported as compliance.
+
+  - mapWithConcurrency now catches mapper errors and resolves results[i] = false
+  - validateSep41 consumes the returned values instead of mutating a closure,
+    so the error path is actually exercised and results is always dense
+  - tests: throwing mapper yields all-false, no holes, and a failing check
+    forces { compliant: false }
+
+
+- [#865](../../issues/865) Add `WalletPage` document title update on address change ([`8081bc4`](../../commit/8081bc4f11fb84836f91a90d00076c0322885aae))
+
+Closes [#865](../../issues/865)
+
+
+- [#864](../../issues/864) Add `EventPage` with full decoded event detail view ([`cd157e4`](../../commit/cd157e46a1ba2e6130cdb08fa0ded1cd14297c53))
+
+Closes [#864](../../issues/864)
+
+
+- [#863](../../issues/863) Implement `GET /api/events` full-text search with `q` paramete ([`494189c`](../../commit/494189c376665b99ad79c78d25f2c429edc1bd17))
+
+Closes [#863](../../issues/863)
+
+
+- [#862](../../issues/862) Add `fuzz` targets for Rust contract input validation ([`24a333b`](../../commit/24a333bc35a0b2b7d3ba984f773125a367dc712c))
+
+Closes [#862](../../issues/862)
+
+
+- [#853](../../issues/853) Fix `transfer` description to read amount from event data, not ([`a76eb7e`](../../commit/a76eb7e0b47eca0aee194ef01427f033e6af9529))
+
+Closes [#853](../../issues/853)
+
+
+- [#852](../../issues/852) Add `extractAddresses` to collect wallet addresses from events ([`28bb226`](../../commit/28bb2260a33ab87604cb7db7e1145f09d6c47310))
+
+Closes [#852](../../issues/852)
+
+
+- [#851](../../issues/851) Add `isValidStellarAddress` guard to `GET /api/wallet/:address ([`1a795f4`](../../commit/1a795f423dfc4267f1a0126cca27503941ab1a45))
+
+Closes [#851](../../issues/851)
+
+
+- [#850](../../issues/850) Implement `transfer_admin` requiring both parties to sign ([`eba71ae`](../../commit/eba71ae853474c2618ee3ea99df6e24128e55845))
+
+Closes [#850](../../issues/850)
+
+
+- [#849](../../issues/849) Add `stellar.toml` SEP-1 compliant network info file ([`5a6063c`](../../commit/5a6063c8d9d039e44b34990614b011efd5ef250e))
+
+Closes [#849](../../issues/849)
+
+
+- [#848](../../issues/848) Add `GET /api/contracts/:id/events` paginated event history fo ([`40970be`](../../commit/40970be98f70be1e7bd0d322579f05edcc55cf93))
+
+Closes [#848](../../issues/848)
+
+
+- [#847](../../issues/847) Add automated PostgreSQL backup strategy with `pg_dump` ([`10a6843`](../../commit/10a684329b50fa66277fab268b550e050270b3cf))
+
+Closes [#847](../../issues/847)
+
+
+- [#846](../../issues/846) Add CI workflow for React frontend build and tests ([`7241d26`](../../commit/7241d266484372215a436d63011bf92226971ef6))
+
+Closes [#846](../../issues/846)
+
+
+- [#869](../../issues/869) Wrap all async Express handlers with asyncHandler ([`4e5f039`](../../commit/4e5f0393a934bbb58657225c0076a03ba0ec16de))
+
+Closes [#869](../../issues/869)
+
+
+- [#868](../../issues/868) Rename Update button to Update metadata with confirmation dial ([`968c0de`](../../commit/968c0de1e2017be7cf424e7befaee1ce5da49ac6))
+
+Closes [#868](../../issues/868)
+
+
+- [#867](../../issues/867) Add centralised Express error-handling middleware ([`1cd8ede`](../../commit/1cd8edef94c2fd66543fe927b51db67b50bce687))
+
+Closes [#867](../../issues/867)
+
+
+- [#866](../../issues/866) Add `mobile-responsive` CSS for frontend at Tranche 3 launch ([`a29f31e`](../../commit/a29f31e3987a2fb343a14d7e4491661758f5be82))
+
+Closes [#866](../../issues/866)
+
+
+- [#845](../../issues/845) Add CI workflow for Node.js indexer tests ([`d5c3841`](../../commit/d5c384184e7774ea16546858add803e58dc2f0e2))
+
+Closes [#845](../../issues/845)
+
+
+- [#844](../../issues/844) Add CI workflow for Rust contract tests ([`eeacd4f`](../../commit/eeacd4f311aede56c7b58a5c1891f78d9341cad6))
+
+Closes [#844](../../issues/844)
+
+
+- [#843](../../issues/843) Implement `LRU cache eviction` on `update` event from indexer ([`2c0541c`](../../commit/2c0541cfcb609c0378e9f15aef7557d3fd9afff8))
+
+Closes [#843](../../issues/843)
+
+
+- [#842](../../issues/842) Add developer documentation for ABI registration ([`dd315cf`](../../commit/dd315cfaa3542a16c3c470975ef1da0b90c45f61))
+
+Closes [#842](../../issues/842)
+
+
+- [#841](../../issues/841) Add `CONTRIBUTING.md` with PR and issue guidelines ([`ca8891f`](../../commit/ca8891f386adb68d30b9b04822a9af90b8f66254))
+
+Closes [#841](../../issues/841)
+
+
+- [#840](../../issues/840) Add Kubernetes deployment manifests ([`0ee0d54`](../../commit/0ee0d5425c2d8c45235c6605a5f7771423041c58))
+
+Closes [#840](../../issues/840)
+
+
+- [#839](../../issues/839) Add `docker-compose.yml` for local development ([`1f200c0`](../../commit/1f200c0659d7008100a1d8b614c34bec057d1f80))
+
+Closes [#839](../../issues/839)
+
+
+- [#838](../../issues/838) Add `ContractsPage` to list all registered contracts ([`e3e401b`](../../commit/e3e401b11d35d85a6ed67976aa964aa8826caf34))
+
+Closes [#838](../../issues/838)
+
+
+- [#861](../../issues/861) Add `eslint.config.js` and `.prettierrc` to indexer for code c ([`4991adb`](../../commit/4991adb4ac23b82a4c418951937c522b939aa1a1))
+
+Closes [#861](../../issues/861)
+
+
+- [#860](../../issues/860) Add `ContractList` to track all registered contract IDs on-cha ([`b4aa8b8`](../../commit/b4aa8b83d0a8382590a1c7a1a41ea765ecade7b7))
+
+Closes [#860](../../issues/860)
+
+
+- [#859](../../issues/859) Add `SECURITY.md` with admin transfer and emergency recovery p ([`4ba4fb7`](../../commit/4ba4fb7128ca1265d563c9d293799897af213d2a))
+
+Closes [#859](../../issues/859)
+
+
+- [#858](../../issues/858) Add `migrate` target to `Makefile` ([`b1ac0fd`](../../commit/b1ac0fdb37bf6e16cf0c5ef50f5ec7b9d7ede288))
+
+Closes [#858](../../issues/858)
+
+
+- [#837](../../issues/837) Add `GET /api/stats` endpoint for aggregate counts ([`ce54a0e`](../../commit/ce54a0ed5cce84648c13ddbd4640b9d29743dfa2))
+
+Closes [#837](../../issues/837)
+
+
+- [#836](../../issues/836) Add advisory lock to `db.init()` migrations to prevent concurr ([`ed89c74`](../../commit/ed89c7450f72b47589cc8e211c000e9d31d774cb))
+
+Closes [#836](../../issues/836)
+
+
+- [#835](../../issues/835) Remove duplicate `export function startApi` declaration from ` ([`713d2bd`](../../commit/713d2bdfdceda49bc82a6a4f3a456444a9c3419e))
+
+Closes [#835](../../issues/835)
+
+
+- [#834](../../issues/834) `validateContractPayload` must be defined in `api.js` ([`029d6c3`](../../commit/029d6c3fad47712dd9be3aa707a57b2aad880dca))
+
+Closes [#834](../../issues/834)
+
+
+- [#857](../../issues/857) Add `LAG_ALERT_THRESHOLD_S` env var to override health alert t ([`65f7274`](../../commit/65f7274fa0526d8b16ce92df954231e695d8bf59))
+
+Closes [#857](../../issues/857)
+
+
+- [#856](../../issues/856) Add `EventTable` empty state with custom message and subtitle ([`bf8b9bb`](../../commit/bf8b9bbe13c14cc2b66f0878a842e00f7bb98237))
+
+Closes [#856](../../issues/856)
+
+
+- [#855](../../issues/855) Add `NOT_REGISTERED_TTL_MS` short-cache for negative ABI looku ([`a8c99e1`](../../commit/a8c99e146ff5bc04b1f63faabbe80b1e3db234f3))
+
+Closes [#855](../../issues/855)
+
+
+- [#854](../../issues/854) Cap `getEvents` limit at `MAX_PAGE (200)` in the database laye ([`1d6d32f`](../../commit/1d6d32f3cadb22a2a02ffe6ddb3c2eb5a8eb8597))
+
+Closes [#854](../../issues/854)
+
+
 - React keys, search query, and debounce in EventTable and Home ([`b3be6a2`](../../commit/b3be6a2cc8b51288676a183ef53944eafffeea16))
 
 - EventTable.tsx ([#303](../../issues/303)): wrap each event pair in <React.Fragment key={ev.seq}>
@@ -624,6 +817,26 @@ Issue [#118](../../issues/118) — Contract admin key management
 
 
 ### Documentation
+
+- Auto-update CHANGELOG.md [skip ci] ([`ce2cd15`](../../commit/ce2cd157445fc59f2aa2d2d5ea902c0442e7a51c))
+
+- Auto-update CHANGELOG.md [skip ci] ([`b197139`](../../commit/b197139bd49727392a3a8c231954b8aa638444a8))
+
+- Auto-update CHANGELOG.md [skip ci] ([`5ea7331`](../../commit/5ea7331f6945c1c6fae810de41c7ab73b79354cb))
+
+- Auto-update CHANGELOG.md [skip ci] ([`dc23c01`](../../commit/dc23c01989eab5d84c36756240d38569e93c307a))
+
+- Auto-update CHANGELOG.md [skip ci] ([`502ba1b`](../../commit/502ba1bb354c0ed9ca52510de8c058bcf5f026d6))
+
+- Auto-update CHANGELOG.md [skip ci] ([`a449e58`](../../commit/a449e5893782c0d039f580232e000354786ac766))
+
+- Auto-update CHANGELOG.md [skip ci] ([`18dd8bc`](../../commit/18dd8bc8e62397d3214ed568210dfdad84a5c102))
+
+- Auto-update CHANGELOG.md [skip ci] ([`96a9e2f`](../../commit/96a9e2f17eacca410517e110ddf0c89667daf6a5))
+
+- Auto-update CHANGELOG.md [skip ci] ([`2134a57`](../../commit/2134a57a69b3d086225f3affb7c0b5c40668a63a))
+
+- Auto-update CHANGELOG.md [skip ci] ([`6b61255`](../../commit/6b612554c94649052e4a8fdaa4505641221f28d1))
 
 - Auto-update CHANGELOG.md [skip ci] ([`bc83ced`](../../commit/bc83cedd948bcc6a645f6021c5afa2997d56d642))
 
