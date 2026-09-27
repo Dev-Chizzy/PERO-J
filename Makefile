@@ -1,7 +1,7 @@
 -include .env
 export EXPLORER_CONTRACT_ID
 
-.PHONY: build test deploy redeploy indexer frontend clean seed-testnet load-test changelog db migrate
+.PHONY: build test deploy redeploy indexer frontend clean seed-testnet load-test changelog db dev-docker
 
 # ── Contract ──────────────────────────────────────────────────────────────────
 build:
@@ -65,6 +65,11 @@ db:
 
 dev:
 	$(MAKE) -j2 indexer frontend
+
+# ── Docker Compose (issue #839) ───────────────────────────────────────────────
+# Start the full local stack (postgres + indexer + frontend) via Docker Compose.
+dev-docker:
+	docker compose up --build
 
 clean:
 	cargo clean
@@ -159,6 +164,7 @@ help:
 	@printf "  make test               Run contract tests\n"
 	@printf "  make migrate            Apply DB migrations without starting the indexer\n"
 	@printf "  make dev                Start the indexer and frontend\n"
+	@printf "  make dev-docker         Start the full stack via Docker Compose\n"
 	@printf "  make e2e                Run the full end-to-end suite\n"
 	@printf "  make changelog          Update CHANGELOG.md with unreleased changes\n"
 	@printf "  make changelog-preview  Preview unreleased changes without modifying files\n"
