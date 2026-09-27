@@ -219,7 +219,8 @@ async function run() {
   await initWithMigrationLock();
   await registerFixtures().catch((err) => {
     console.error("[fixtures] failed to register ABI fixtures:", err.message);
-  });
+  }
+
   startApi();
 
   await validateNetwork(rpc);
