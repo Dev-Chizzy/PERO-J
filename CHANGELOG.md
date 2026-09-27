@@ -8,6 +8,26 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ### Bug Fixes
 
+- [#849](../../issues/849) Add `stellar.toml` SEP-1 compliant network info file ([`5a6063c`](../../commit/5a6063c8d9d039e44b34990614b011efd5ef250e))
+
+Closes [#849](../../issues/849)
+
+
+- [#848](../../issues/848) Add `GET /api/contracts/:id/events` paginated event history fo ([`40970be`](../../commit/40970be98f70be1e7bd0d322579f05edcc55cf93))
+
+Closes [#848](../../issues/848)
+
+
+- [#847](../../issues/847) Add automated PostgreSQL backup strategy with `pg_dump` ([`10a6843`](../../commit/10a684329b50fa66277fab268b550e050270b3cf))
+
+Closes [#847](../../issues/847)
+
+
+- [#846](../../issues/846) Add CI workflow for React frontend build and tests ([`7241d26`](../../commit/7241d266484372215a436d63011bf92226971ef6))
+
+Closes [#846](../../issues/846)
+
+
 - [#869](../../issues/869) Wrap all async Express handlers with asyncHandler ([`4e5f039`](../../commit/4e5f0393a934bbb58657225c0076a03ba0ec16de))
 
 Closes [#869](../../issues/869)
@@ -644,6 +664,8 @@ Issue [#118](../../issues/118) — Contract admin key management
 
 
 ### Documentation
+
+- Auto-update CHANGELOG.md [skip ci] ([`2134a57`](../../commit/2134a57a69b3d086225f3affb7c0b5c40668a63a))
 
 - Auto-update CHANGELOG.md [skip ci] ([`6b61255`](../../commit/6b612554c94649052e4a8fdaa4505641221f28d1))
 
