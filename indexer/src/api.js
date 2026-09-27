@@ -223,6 +223,24 @@ export function createApp() {
     })
   );
 
+  // GET /api/contracts/:id/events?fn=&page= — paginated event history for a
+  // registered contract, optionally filtered by function name.
+  app.get(
+    "/api/contracts/:id/events",
+    asyncHandler(async (req, res) => {
+      const meta = await db.getContractMeta(req.params.id);
+      if (!meta) {
+        return res.status(404).json({ error: "Not found" });
+      }
+      const result = await db.getEvents({
+        contract: req.params.id,
+        fn: req.query.fn,
+        page: Number(req.query.page) || 1,
+      });
+      res.json(result);
+    })
+  );
+
   // GET /api/contracts/:id
   app.get(
     "/api/contracts/:id",
