@@ -8,6 +8,19 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ### Bug Fixes
 
+- Resolve false instead of leaving holes in mapWithConcurrency ([`29d7bb6`](../../commit/29d7bb639d5d3c6270c691c9f658a4a1f4696b7c))
+
+A throwing mapper left its slot in the results array empty, creating a hole.
+  Array.prototype.every skips holes entirely, so a mapper failure was silently
+  reported as compliance.
+
+  - mapWithConcurrency now catches mapper errors and resolves results[i] = false
+  - validateSep41 consumes the returned values instead of mutating a closure,
+    so the error path is actually exercised and results is always dense
+  - tests: throwing mapper yields all-false, no holes, and a failing check
+    forces { compliant: false }
+
+
 - [#865](../../issues/865) Add `WalletPage` document title update on address change ([`8081bc4`](../../commit/8081bc4f11fb84836f91a90d00076c0322885aae))
 
 Closes [#865](../../issues/865)
@@ -804,6 +817,8 @@ Issue [#118](../../issues/118) — Contract admin key management
 
 
 ### Documentation
+
+- Auto-update CHANGELOG.md [skip ci] ([`ce2cd15`](../../commit/ce2cd157445fc59f2aa2d2d5ea902c0442e7a51c))
 
 - Auto-update CHANGELOG.md [skip ci] ([`b197139`](../../commit/b197139bd49727392a3a8c231954b8aa638444a8))
 
