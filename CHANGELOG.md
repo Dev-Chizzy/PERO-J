@@ -840,6 +840,8 @@ Issue [#118](../../issues/118) — Contract admin key management
 
 ### Documentation
 
+- Auto-update CHANGELOG.md [skip ci] ([`c9644e4`](../../commit/c9644e49f02312e55fd077acca057d2f69056ef9))
+
 - Auto-update CHANGELOG.md [skip ci] ([`f79a97a`](../../commit/f79a97a5f7c033a4b45ee860305c9c5367401732))
 
 - Auto-update CHANGELOG.md [skip ci] ([`6a9d89f`](../../commit/6a9d89faed6d3d169ba21e40ffcfaee6f46217a0))
@@ -1076,6 +1078,16 @@ Issue [#118](../../issues/118) — Contract admin key management
 
 
 ### Features
+
+- Add NotFound page with home link and catch-all route ([#826](../../issues/826)) ([`c5d060f`](../../commit/c5d060f7281b99e531072c641f3eeb2ded023a0b))
+
+- Add NotFound page component with 404 heading and Go to Home link
+  - Text suggests checking the URL and trying again
+  - Use semantic <main> element with aria-labelledby for accessibility
+  - Register catch-all path="*" route in App.tsx to render NotFound
+
+  Closes [#826](../../issues/826)
+
 
 - Document admin key loss recovery, add burn_from decoder, cache invalidation, and volume metadata warning ([`4ded529`](../../commit/4ded5297828e1097f9a0880d91ceb99ae2ffb0ab))
 
