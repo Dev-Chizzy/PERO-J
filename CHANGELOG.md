@@ -8,6 +8,8 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ### Bug Fixes
 
+- Use GIN index for wallet event queries ([`df010b2`](../../commit/df010b2a97a13e7f6053c8bd84d13fa06e972398))
+
 - Resolve false instead of leaving holes in mapWithConcurrency ([`29d7bb6`](../../commit/29d7bb639d5d3c6270c691c9f658a4a1f4696b7c))
 
 A throwing mapper left its slot in the results array empty, creating a hole.
@@ -837,6 +839,8 @@ Issue [#118](../../issues/118) — Contract admin key management
 
 
 ### Documentation
+
+- Auto-update CHANGELOG.md [skip ci] ([`f79a97a`](../../commit/f79a97a5f7c033a4b45ee860305c9c5367401732))
 
 - Auto-update CHANGELOG.md [skip ci] ([`6a9d89f`](../../commit/6a9d89faed6d3d169ba21e40ffcfaee6f46217a0))
 
