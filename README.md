@@ -170,10 +170,16 @@ The `update` topic lets the indexer invalidate its ABI cache without polling sto
 | `GET /api/wallet/:address` | Wallet event history |
 | `GET /api/tokens/:id/volume?decimals=` | 24-hour rolling transfer volume for a SEP-41 token. Optional `decimals` query param (integer 0–38) overrides the on-chain metadata lookup. |
 
-PostgreSQL `events.seq` is the canonical REST/frontend identifier. On-chain
-`EventSeq` values are stored separately as nullable `onchain_seq` values because
-the database row sequence and contract submission sequence are different
-namespaces and can diverge.
+### Event sequence namespaces
+
+The `events` table tracks two distinct sequence numbers:
+
+| Column | Type | Description |
+|--------|------|-------------|
+| `seq` | `BIGSERIAL` (PK) | Auto-increment database sequence. The canonical identifier used by the REST API and frontend (e.g. `GET /api/events/:seq`). Always present. |
+| `onchain_seq` | `BIGINT` (nullable) | The `EventSeq` value returned by the on-chain `ExplorerContract` after a successful submission. `NULL` when the event was not submitted or the submission failed. |
+
+These two namespaces are **independent** and will diverge over time — not every database row has a corresponding on-chain submission, and on-chain sequence numbers are scoped to the contract, not the database. Always use `seq` to reference events in API calls and frontend URLs.
 
 ### Volume endpoint
 
