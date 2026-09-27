@@ -54,6 +54,34 @@ export function isValidStellarAddress(value) {
   return StrKey.isValidEd25519PublicKey(trimmed) || StrKey.isValidContract(trimmed);
 }
 
+/**
+ * Validates the payload for registering/updating contract ABI metadata.
+ *
+ * @param {unknown} body
+ * @returns {string|null} an error message when invalid, otherwise null
+ */
+export function validateContractPayload(body) {
+  if (body === null || typeof body !== "object" || Array.isArray(body)) {
+    return "Request body must be a JSON object";
+  }
+
+  const { id, name, functions } = body;
+
+  if (typeof id !== "string" || id.trim() === "") {
+    return "id must be a non-empty string";
+  }
+
+  if (typeof name !== "string" || name.trim() === "") {
+    return "name must be a non-empty string";
+  }
+
+  if (!Array.isArray(functions)) {
+    return "functions must be an array";
+  }
+
+  return null;
+}
+
 export function createApp() {
   const app = express();
   let distinctFunctionsCache = null;
@@ -253,9 +281,10 @@ export function createApp() {
     })
   );
 
-  // POST /api/contracts — register ABI metadata
+  // POST /api/contracts — register contract ABI metadata
   app.post(
     "/api/contracts",
+    requireAdminKey,
     asyncHandler(async (req, res) => {
       const validationError = validateContractPayload(req.body);
       if (validationError) {
