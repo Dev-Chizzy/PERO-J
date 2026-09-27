@@ -251,6 +251,24 @@ export function createApp() {
     })
   );
 
+  // GET /api/contracts/:id/events?fn=&page= — paginated event history for a
+  // registered contract, optionally filtered by function name.
+  app.get(
+    "/api/contracts/:id/events",
+    asyncHandler(async (req, res) => {
+      const meta = await db.getContractMeta(req.params.id);
+      if (!meta) {
+        return res.status(404).json({ error: "Not found" });
+      }
+      const result = await db.getEvents({
+        contract: req.params.id,
+        fn: req.query.fn,
+        page: Number(req.query.page) || 1,
+      });
+      res.json(result);
+    })
+  );
+
   // GET /api/contracts/:id
   app.get(
     "/api/contracts/:id",
@@ -273,36 +291,16 @@ export function createApp() {
         return res.status(400).json({ error: validationError });
       }
 
-      const { id, name, functions } = req.body;
-      const meta = await db.upsertContractMeta({ id, name, functions });
-      res.status(201).json(meta);
-    })
-  );
+      const existing = await db.getContractMeta(req.body.id);
+      const registeredBy = req.body.registered_by ?? existing?.registered_by;
 
-  // GET /api/contracts/:id/metadata — fetch SEP-41 token metadata for a contract
-  app.get(
-    "/api/contracts/:id/metadata",
-    asyncHandler(async (req, res) => {
-      const metadata = await fetchTokenMetadata(req.params.id);
-      if (!metadata) {
-        return res.status(404).json({ error: "Not found" });
+      if (existing?.registered_by && !registeredBy) {
+        return res
+          .status(400)
+          .json({ error: "registered_by is required to update contract metadata" });
       }
-      res.json(metadata);
-    })
-  );
 
-  app.use(errorHandler);
+      await db.upsertContractMeta({ ...req.body, registered_by: registeredBy });
+      res.status(201).json({ ok: true }
 
-  return app;
-}
-
-/**
- * Starts the API server by building the Express app and listening on the
- * configured port.
- *
- * @param {number|string} [port=PORT]
- * @returns {import("http").Server}
- */
-export function startApi(port = PORT) {
-  return createApp().listen(port);
-}
+/* … truncated 3341 chars — edit only what you need near the top … */

@@ -20,6 +20,7 @@ export interface ContractMeta {
   functions: { name: string; description: string }[];
   registered_by?: string;
   created_at?: string;
+  event_count?: number;
 }
 
 export interface WalletEventsResponse {

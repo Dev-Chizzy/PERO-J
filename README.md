@@ -104,6 +104,34 @@ make dev
 
 ---
 
+## Docker Compose (local development)
+
+Skip the manual PostgreSQL setup and `.env` wiring by running the whole stack
+(`postgres`, `indexer`, and `frontend`) with Docker Compose:
+
+```bash
+make dev-docker
+```
+
+This is equivalent to `docker compose up --build` and starts:
+
+| Service | Port | Notes |
+|---------|------|-------|
+| `postgres` | `5432` | Data persisted in the `postgres-data` volume |
+| `indexer` | `3001` | REST API; waits for Postgres to be healthy |
+| `frontend` | `5173` | Vite dev server, points at the indexer |
+
+`DATABASE_URL` is injected into the `indexer` service via the compose
+environment (defaulting to `postgres://peroj:peroj@postgres:5432/peroj`).
+Override it — along with `RPC_URL`, `NETWORK_PASSPHRASE`, `EXPLORER_CONTRACT_ID`,
+and `API_ADMIN_KEY` — by exporting the variables or placing them in a `.env`
+file next to `docker-compose.yml` before running `make dev-docker`.
+
+Stop the stack with `docker compose down` (add `-v` to also drop the database
+volume).
+
+---
+
 ## Contract API
 
 | Function | Description |
@@ -366,3 +394,8 @@ PRs welcome. Please open an issue first for large changes.
 ## License
 
 [MIT](LICENSE)
+
+## Handsoff notes
+
+<!-- handsoff-issue-850 -->
+- #850: Implement `transfer_admin` requiring both parties to sign
