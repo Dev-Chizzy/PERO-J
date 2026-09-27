@@ -293,6 +293,8 @@ The frontend CI was failing with 'npm ci can only install packages when
     missing); registered before /:seq to prevent route shadowing.
 
 
+- Address issues 768, 770, 771, 772 ([`4e054d0`](../../commit/4e054d036c69101d9d019fed8d93c7f11d46ffc2))
+
 - React keys, search query, and debounce in EventTable and Home ([`b3be6a2`](../../commit/b3be6a2cc8b51288676a183ef53944eafffeea16))
 
 - EventTable.tsx ([#303](../../issues/303)): wrap each event pair in <React.Fragment key={ev.seq}>
@@ -908,7 +910,14 @@ Issue [#118](../../issues/118) — Contract admin key management
 
 
 
+### CI / CD
+
+- Fix frontend Node and lockfile ([`bbf0ec1`](../../commit/bbf0ec1ae4733eb5bde2275dbc0e60b3e50d558d))
+
+
 ### Documentation
+
+- Auto-update CHANGELOG.md [skip ci] ([`1e2ac6a`](../../commit/1e2ac6a638e96e404aafb821ec18e96cd469bccc))
 
 - Auto-update CHANGELOG.md [skip ci] ([`05f4eda`](../../commit/05f4edac9aa8370cb1614b05644c9d06197a0164))
 
