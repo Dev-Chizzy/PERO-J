@@ -222,6 +222,30 @@ export function createApp() {
     });
   });
 
+  // GET /api/events/:seq/raw — raw un-decoded topics and data for a single event.
+  // Must be registered BEFORE /api/events/:seq so Express doesn't consume "raw"
+  // as the :seq parameter.
+  app.get(
+    "/api/events/:seq/raw",
+    asyncHandler(async (req, res) => {
+      const seqStr = String(req.params.seq).trim();
+      const seq = parseInt(seqStr, 10);
+      if (isNaN(seq) || seq < 0 || !/^\d+$/.test(seqStr)) {
+        return res.status(400).json({ error: "seq must be a non-negative integer" });
+      }
+      const ev = await db.getEvent(seq);
+      if (!ev) {
+        return res.status(404).json({ error: "Not found" });
+      }
+      res.json({
+        seq: ev.seq,
+        raw_topics: ev.raw_topics,
+        raw_data: ev.raw_data,
+        tx_hash: ev.tx_hash,
+      });
+    })
+  );
+
   // GET /api/events/:seq
   app.get(
     "/api/events/:seq",

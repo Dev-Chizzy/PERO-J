@@ -49,8 +49,8 @@ const XLM_SAC_ID = new Contract(
 
 // Unique valid contract IDs (derived from deterministic seeds) — one per test
 // so that the 60-second LRU cache in decoder.js never bleeds between tests.
-const [C1, C2, C3, C4, C5, C6, C7, C8, C9, C10, C11, C12, C13, C17, C18] = [
-  1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 17, 18,
+const [C1, C2, C3, C4, C5, C6, C7, C8, C9, C10, C11, C12, C13, C14, C15, C16, C17, C18, C19, C20] = [
+  1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20,
 ].map((i) => StrKey.encodeContract(Buffer.alloc(32, i)));
 
 
@@ -180,9 +180,9 @@ describe("decode()", () => {
 
   it("uses buildDescription for 'approve'", async () => {
     db.getContractMeta = async (id) =>
-      id === C13 ? { id: C13, name: "Token", functions: [{ name: "approve" }] } : null;
+      id === C19 ? { id: C19, name: "Token", functions: [{ name: "approve" }] } : null;
 
-    const ev = makeRawEvent(C13, "approve", [scAddress(ADDR_G), scAddress(ADDR_G2)]);
+    const ev = makeRawEvent(C19, "approve", [scAddress(ADDR_G), scAddress(ADDR_G2)]);
 
     const result = await decode(ev);
     assert.equal(result.function, "approve");
@@ -343,9 +343,9 @@ describe("decode()", () => {
 
   it("uses buildDescription for 'transfer_from'", async () => {
     db.getContractMeta = async (id) =>
-      id === C17 ? { id: C17, name: "DexRouter", functions: [{ name: "transfer_from" }] } : null;
+      id === C20 ? { id: C20, name: "DexRouter", functions: [{ name: "transfer_from" }] } : null;
 
-    const ev = makeRawEvent(C17, "transfer_from", [
+    const ev = makeRawEvent(C20, "transfer_from", [
       scAddress(ADDR_G),
       scAddress(ADDR_G2),
       scAddress(ADDR_G),
