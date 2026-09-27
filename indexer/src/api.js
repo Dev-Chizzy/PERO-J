@@ -54,6 +54,37 @@ export function isValidStellarAddress(value) {
   return StrKey.isValidEd25519PublicKey(trimmed) || StrKey.isValidContract(trimmed);
 }
 
+/**
+ * Validate the body of a POST /api/contracts request.
+ *
+ * Returns an error message string when validation fails, or null when the
+ * payload is valid.  Keeping this as a pure function (no side-effects) makes
+ * it straightforward to unit-test in isolation.
+ *
+ * Rules:
+ *  - id       — required, must be a non-empty string
+ *  - name     — required, must be a non-empty string
+ *  - functions — optional; when present must be an array
+ *
+ * @param {unknown} body
+ * @returns {string|null}
+ */
+export function validateContractPayload(body) {
+  if (!body || typeof body !== "object" || Array.isArray(body)) {
+    return "id is required";
+  }
+  if (!body.id || typeof body.id !== "string" || body.id.trim() === "") {
+    return "id is required";
+  }
+  if (!body.name || typeof body.name !== "string" || body.name.trim() === "") {
+    return "name is required";
+  }
+  if (body.functions !== undefined && !Array.isArray(body.functions)) {
+    return "functions must be an array";
+  }
+  return null;
+}
+
 export function createApp() {
   const app = express();
   let distinctFunctionsCache = null;
@@ -193,6 +224,30 @@ export function createApp() {
       res.end();
     });
   });
+
+  // GET /api/events/:seq/raw — raw un-decoded topics and data for a single event.
+  // Must be registered BEFORE /api/events/:seq so Express doesn't consume "raw"
+  // as the :seq parameter.
+  app.get(
+    "/api/events/:seq/raw",
+    asyncHandler(async (req, res) => {
+      const seqStr = String(req.params.seq).trim();
+      const seq = parseInt(seqStr, 10);
+      if (isNaN(seq) || seq < 0 || !/^\d+$/.test(seqStr)) {
+        return res.status(400).json({ error: "seq must be a non-negative integer" });
+      }
+      const ev = await db.getEvent(seq);
+      if (!ev) {
+        return res.status(404).json({ error: "Not found" });
+      }
+      res.json({
+        seq: ev.seq,
+        raw_topics: ev.raw_topics,
+        raw_data: ev.raw_data,
+        tx_hash: ev.tx_hash,
+      });
+    })
+  );
 
   // GET /api/events/:seq
   app.get(
