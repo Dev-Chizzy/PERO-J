@@ -840,6 +840,8 @@ Issue [#118](../../issues/118) — Contract admin key management
 
 ### Documentation
 
+- Auto-update CHANGELOG.md [skip ci] ([`f73f414`](../../commit/f73f414ab11985b7e7e0b8c8f8d7ec02c435b809))
+
 - Note [#803](../../issues/803) RPC client recreation already implemented ([`cb5671e`](../../commit/cb5671eb67d5947298715e066b25f15d80c67d41))
 
 - Note [#801](../../issues/801) GET /api/contracts already implemented ([`23dfd3d`](../../commit/23dfd3d7a86b67b47d9b79fd0162c3f5f79cc0da))
@@ -1126,6 +1128,17 @@ Issue [#118](../../issues/118) — Contract admin key management
 
 
 ### Features
+
+- Add onchain_seq nullable column to events table ([#828](../../issues/828)) ([`02757a5`](../../commit/02757a5ed2e1e4324ee70cf1f8ac8ebefc4e9883))
+
+- onchain_seq BIGINT column declared in migration 1 (CREATE TABLE)
+  - Idempotent ALTER TABLE ADD COLUMN IF NOT EXISTS in migration 2
+  - db.upsertEvent() persists ev.onchain_seq ?? null as $10 parameter
+  - Expand README two-sentence note into a full 'Event sequence namespaces'
+    section with a comparison table documenting seq vs onchain_seq
+
+  Closes [#828](../../issues/828)
+
 
 - Add NotFound page with home link and catch-all route ([#826](../../issues/826)) ([`c5d060f`](../../commit/c5d060f7281b99e531072c641f3eeb2ded023a0b))
 
