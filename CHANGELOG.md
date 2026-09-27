@@ -840,6 +840,16 @@ Issue [#118](../../issues/118) — Contract admin key management
 
 ### Documentation
 
+- Note [#795](../../issues/795) search debounce already implemented ([`a1fa90f`](../../commit/a1fa90f78288aeda1f1997b639d187bd4fe80bd5))
+
+- Note [#794](../../issues/794) skeleton loading states already implemented ([`7f0ad23`](../../commit/7f0ad23ebd8b4f32980d2c1510a3d5841c8bba73))
+
+- Note [#793](../../issues/793) CopyButton ariaLabel already implemented ([`943178e`](../../commit/943178e11116434ba982c3652601c62ee3d9d8da))
+
+- Note [#792](../../issues/792) seq validation already implemented ([`57cc1b9`](../../commit/57cc1b9250d1e01f4894d4e7752ddee90dc3f47c))
+
+- Auto-update CHANGELOG.md [skip ci] ([`575e7aa`](../../commit/575e7aa730deefdff79a597dd7cd4aae0647b84c))
+
 - Auto-update CHANGELOG.md [skip ci] ([`c9644e4`](../../commit/c9644e49f02312e55fd077acca057d2f69056ef9))
 
 - Auto-update CHANGELOG.md [skip ci] ([`f79a97a`](../../commit/f79a97a5f7c033a4b45ee860305c9c5367401732))
