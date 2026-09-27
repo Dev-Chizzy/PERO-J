@@ -840,6 +840,16 @@ Issue [#118](../../issues/118) — Contract admin key management
 
 ### Documentation
 
+- Note [#807](../../issues/807) already implemented ([`c988b2e`](../../commit/c988b2e357ab196b708620ba8411ee470dbf1832))
+
+- Note [#806](../../issues/806) already implemented ([`f68ad73`](../../commit/f68ad7333a66f061e35b2338f9d675c912227aa1))
+
+- Note [#805](../../issues/805) already implemented ([`59a0af9`](../../commit/59a0af9f348e4bfbd04c61674ec2c40b123c0296))
+
+- Note [#804](../../issues/804) already implemented ([`fb888a0`](../../commit/fb888a031d6aea7289982a8b3a63200d378a5aba))
+
+- Auto-update CHANGELOG.md [skip ci] ([`d93f7e2`](../../commit/d93f7e2f38ddd854523b1484c8a321920a0907fd))
+
 - Note [#811](../../issues/811) is already implemented on main ([`35bf3f8`](../../commit/35bf3f8429c0679a9578cf015712a744e24733af))
 
 - Note [#810](../../issues/810) is already implemented on main ([`be133e2`](../../commit/be133e28ee18659e49e40f6a2f25f1132af1bb9d))
