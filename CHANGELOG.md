@@ -201,6 +201,26 @@ Closes [#855](../../issues/855)
 Closes [#854](../../issues/854)
 
 
+- [#833](../../issues/833) Register StellarSwap, Blend, and Phoenix ABI fixtures on start ([`e0ff17e`](../../commit/e0ff17e96b7457fae0c2abcba1c4217f87c6916c))
+
+Closes [#833](../../issues/833)
+
+
+- [#832](../../issues/832) Add `swap` case to `buildDescription()` ([`aaeee9a`](../../commit/aaeee9a67d50a44b6a0b869bf1adc241424c1f3f))
+
+Closes [#832](../../issues/832)
+
+
+- [#831](../../issues/831) Add `stake` and `unstake` cases to `buildDescription()` ([`3112846`](../../commit/3112846cb96f20ee3e588d2c9383ee4409de49b2))
+
+Closes [#831](../../issues/831)
+
+
+- [#830](../../issues/830) Add `approve` case to `buildDescription()` ([`9de8a62`](../../commit/9de8a628f7b9782057c4902a0ff96e9bb79e099e))
+
+Closes [#830](../../issues/830)
+
+
 - React keys, search query, and debounce in EventTable and Home ([`b3be6a2`](../../commit/b3be6a2cc8b51288676a183ef53944eafffeea16))
 
 - EventTable.tsx ([#303](../../issues/303)): wrap each event pair in <React.Fragment key={ev.seq}>
@@ -817,6 +837,8 @@ Issue [#118](../../issues/118) — Contract admin key management
 
 
 ### Documentation
+
+- Auto-update CHANGELOG.md [skip ci] ([`6a9d89f`](../../commit/6a9d89faed6d3d169ba21e40ffcfaee6f46217a0))
 
 - Auto-update CHANGELOG.md [skip ci] ([`ce2cd15`](../../commit/ce2cd157445fc59f2aa2d2d5ea902c0442e7a51c))
 
