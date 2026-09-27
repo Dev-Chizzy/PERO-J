@@ -8,6 +8,26 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ### Bug Fixes
 
+- [#869](../../issues/869) Wrap all async Express handlers with asyncHandler ([`4e5f039`](../../commit/4e5f0393a934bbb58657225c0076a03ba0ec16de))
+
+Closes [#869](../../issues/869)
+
+
+- [#868](../../issues/868) Rename Update button to Update metadata with confirmation dial ([`968c0de`](../../commit/968c0de1e2017be7cf424e7befaee1ce5da49ac6))
+
+Closes [#868](../../issues/868)
+
+
+- [#867](../../issues/867) Add centralised Express error-handling middleware ([`1cd8ede`](../../commit/1cd8edef94c2fd66543fe927b51db67b50bce687))
+
+Closes [#867](../../issues/867)
+
+
+- [#866](../../issues/866) Add `mobile-responsive` CSS for frontend at Tranche 3 launch ([`a29f31e`](../../commit/a29f31e3987a2fb343a14d7e4491661758f5be82))
+
+Closes [#866](../../issues/866)
+
+
 - React keys, search query, and debounce in EventTable and Home ([`b3be6a2`](../../commit/b3be6a2cc8b51288676a183ef53944eafffeea16))
 
 - EventTable.tsx ([#303](../../issues/303)): wrap each event pair in <React.Fragment key={ev.seq}>
@@ -624,6 +644,8 @@ Issue [#118](../../issues/118) — Contract admin key management
 
 
 ### Documentation
+
+- Auto-update CHANGELOG.md [skip ci] ([`6b61255`](../../commit/6b612554c94649052e4a8fdaa4505641221f28d1))
 
 - Auto-update CHANGELOG.md [skip ci] ([`bc83ced`](../../commit/bc83cedd948bcc6a645f6021c5afa2997d56d642))
 
