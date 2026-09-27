@@ -840,6 +840,16 @@ Issue [#118](../../issues/118) — Contract admin key management
 
 ### Documentation
 
+- Note [#799](../../issues/799) ContractPage events guard already present ([`f62fbf2`](../../commit/f62fbf2eaf909da89bafa03985b27e5c69a25800))
+
+- Note [#798](../../issues/798) WalletPage Next button already fixed ([`7d6649c`](../../commit/7d6649c48391cfb06710f34c640426da92d4dbba))
+
+- Note [#797](../../issues/797) event count summary already implemented ([`73885db`](../../commit/73885dba5fe594c8f9439d199b1844ba605df7da))
+
+- Note [#796](../../issues/796) function filter dropdown already implemented ([`b58be92`](../../commit/b58be92898ff90a15ae7671b78ca64a07a0c4e11))
+
+- Auto-update CHANGELOG.md [skip ci] ([`bbe2429`](../../commit/bbe2429b4ac4a5f85ee6f9cb7dca3929a80d5035))
+
 - Note [#807](../../issues/807) already implemented ([`c988b2e`](../../commit/c988b2e357ab196b708620ba8411ee470dbf1832))
 
 - Note [#806](../../issues/806) already implemented ([`f68ad73`](../../commit/f68ad7333a66f061e35b2338f9d675c912227aa1))
