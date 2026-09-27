@@ -159,6 +159,30 @@ function buildDescription(fn, args, data, contractName) {
       const [from, amount, token] = args;
       return `Address ${fmt(from)} unstaked ${amount} ${token ?? ""} on ${contractName}`;
     }
+    case "supply": {
+      const [from, token, amount] = args;
+      return `Address ${fmt(from)} supplied ${amount} ${token ?? ""} into ${contractName}`;
+    }
+    case "borrow": {
+      const [from, token, amount] = args;
+      return `Address ${fmt(from)} borrowed ${amount} ${token ?? ""} from ${contractName}`;
+    }
+    case "repay": {
+      const [from, token, amount] = args;
+      return `Address ${fmt(from)} repaid ${amount} ${token ?? ""} on ${contractName}`;
+    }
+    case "liquidate": {
+      const [borrower, liquidator, token, amount] = args;
+      return `Address ${fmt(liquidator)} liquidated ${fmt(borrower)} for ${amount} ${token ?? ""} on ${contractName}`;
+    }
+    case "deposit": {
+      const [from, amount, token] = args;
+      return `Address ${fmt(from)} deposited ${amount} ${token ?? ""} into ${contractName}`;
+    }
+    case "withdraw": {
+      const [from, amount, token] = args;
+      return `Address ${fmt(from)} withdrew ${amount} ${token ?? ""} from ${contractName}`;
+    }
     default:
       return genericDescription(fn, args, data, contractName);
   }
