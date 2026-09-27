@@ -159,7 +159,7 @@ The `update` topic lets the indexer invalidate its ABI cache without polling sto
 
 | Endpoint | Description |
 |----------|-------------|
-| `GET /health` | Liveness + lag probe — returns `lag_seconds`, `uptime_seconds`, `last_ledger`. HTTP 200 when healthy, 503 when `lag_seconds > 30`. |
+| `GET /health` | Liveness + lag probe — returns `lag_seconds`, `uptime_seconds`, `last_ledger`. HTTP 200 when healthy, 503 when `lag_seconds > LAG_ALERT_THRESHOLD_S` (default 30). |
 | `GET /api/events?contract=&fn=&page=` | Paginated event list: `{ events, total, page, limit }` |
 | `GET /api/events/:seq` | Single event |
 | `GET /api/events/:seq/raw` | Raw un-decoded event topics and data: `{ seq, raw_topics, raw_data, tx_hash }` |
@@ -201,7 +201,7 @@ Example response:
 
 Configure an external monitor (UptimeRobot, Better Uptime, or similar) to call
 `GET /health` every **60 seconds** and alert when the response is HTTP 503 **or**
-`lag_seconds > 30`.  This satisfies ROADMAP Tranche 2 deliverable 2.7 (< 10 s
+`lag_seconds > LAG_ALERT_THRESHOLD_S` (default `30`).  This satisfies ROADMAP Tranche 2 deliverable 2.7 (< 10 s
 index lag under normal load, alert threshold 30 s).
 
 Example healthy response:
@@ -227,7 +227,7 @@ Example degraded response (HTTP 503):
 ```
 
 Override the alert threshold via the `LAG_ALERT_THRESHOLD_S` environment variable
-(default `30`).
+(default `30`). Non-numeric values fall back to the default of `30`.
 
 ---
 
@@ -240,14 +240,7 @@ The decoder recognises SEP-41 token events (`transfer`, `mint`, `burn`) and form
 ## Validated Need & Traction
 
 - **Confirmed gap:** StellarExpert and Stellar.expert (the two primary Stellar explorers) show
-  raw XDR bytes for all Soroban contract events as of May 2026 — no human-readable decoding exists.
-- **Community signal:** Developers in `#soroban-dev` on Stellar Discord regularly ask how to
-  inspect their own contract events in a readable form. No existing tool answers this.
-- **Comparable success:** Etherscan's ABI decoder is one of its most-used features. Solscan
-  built the same for Solana and became the primary explorer for Solana DeFi. Stellar has no
-  equivalent for Soroban.
-- **Target users:** Soroban dApp developers, DeFi users, NFT traders, auditors — anyone who
-  needs to understand what is happening on-chain.
+  raw XDR bytes for all Soroban contract events as of May 2026 — no human-readable 
 
 ---
 
